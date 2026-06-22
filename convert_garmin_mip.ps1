@@ -54,6 +54,7 @@ Pixels with alpha lower than this value become transparent. Default: 128.
 
 .PARAMETER Recurse
 When InputPath is a folder, also process PNGs in subfolders.
+Subfolder structure is preserved in OutputDir.
 
 .PARAMETER Help
 Print detailed usage and exit.
@@ -172,7 +173,9 @@ Examples
   powershell -ExecutionPolicy Bypass -File .\$scriptName -InputPath .\icons -Dither None
 
 Notes
+  - Recursive folder conversion preserves subfolder paths under -OutputDir.
   - Do not set -OutputDir to the same folder as the input files.
+  - With -Recurse, do not put -OutputDir inside the input folder.
   - Use -Size OR -Width/-Height, not both.
   - If only -Width or only -Height is given, the other side is computed from
     each source image's aspect ratio.
@@ -247,6 +250,57 @@ if (-not [System.IO.Path]::IsPathRooted($OutputDir)) {
     $OutputDir = Join-Path (Get-Location).Path $OutputDir
 }
 $outputFull = [System.IO.Path]::GetFullPath($OutputDir)
+$inputItem = Get-Item -LiteralPath $inputFull
+$inputIsFolder = $inputItem.PSIsContainer
+$inputRootFull = if ($inputIsFolder) {
+    $inputItem.FullName
+} else {
+    [System.IO.Path]::GetDirectoryName($inputItem.FullName)
+}
+
+function Get-ComparablePath {
+    param([string]$Path)
+    return [System.IO.Path]::GetFullPath($Path).TrimEnd([char[]]@('\', '/'))
+}
+
+function Add-TrailingSeparator {
+    param([string]$Path)
+    $full = [System.IO.Path]::GetFullPath($Path)
+    if (-not $full.EndsWith([System.IO.Path]::DirectorySeparatorChar.ToString()) -and
+        -not $full.EndsWith([System.IO.Path]::AltDirectorySeparatorChar.ToString())) {
+        $full += [System.IO.Path]::DirectorySeparatorChar
+    }
+    return $full
+}
+
+function Test-SamePath {
+    param([string]$A, [string]$B)
+    return [string]::Equals((Get-ComparablePath $A), (Get-ComparablePath $B), [System.StringComparison]::OrdinalIgnoreCase)
+}
+
+function Test-IsChildPath {
+    param([string]$Path, [string]$Parent)
+    $full = [System.IO.Path]::GetFullPath($Path)
+    $parentFull = Add-TrailingSeparator $Parent
+    return $full.StartsWith($parentFull, [System.StringComparison]::OrdinalIgnoreCase)
+}
+
+function Get-RelativePath {
+    param([string]$BasePath, [string]$TargetPath)
+    $baseUri = [Uri](Add-TrailingSeparator $BasePath)
+    $targetUri = [Uri]([System.IO.Path]::GetFullPath($TargetPath))
+    return [Uri]::UnescapeDataString($baseUri.MakeRelativeUri($targetUri).ToString()).Replace('/', [System.IO.Path]::DirectorySeparatorChar)
+}
+
+if ($inputIsFolder) {
+    if (Test-SamePath $outputFull $inputFull) {
+        Stop-WithUsage "Refusing to write folder output into the input folder. Choose a different -OutputDir."
+    }
+    if ($Recurse -and (Test-IsChildPath $outputFull $inputFull)) {
+        Stop-WithUsage "With -Recurse, -OutputDir cannot be inside the input folder because it may be processed again."
+    }
+}
+
 if (-not (Test-Path -LiteralPath $outputFull)) {
     New-Item -ItemType Directory -Path $outputFull | Out-Null
 }
@@ -459,7 +513,9 @@ public static class GarminMipPng8 {
 }
 '@
 
-Add-Type -TypeDefinition $csharp -ReferencedAssemblies System.IO.Compression, System.IO.Compression.FileSystem -ErrorAction SilentlyContinue
+if (-not ("GarminMipPng8" -as [type])) {
+    Add-Type -TypeDefinition $csharp -ReferencedAssemblies System.IO.Compression, System.IO.Compression.FileSystem -ErrorAction Stop
+}
 Add-Type -AssemblyName System.Drawing
 
 $levels = @(0x00, 0x55, 0xAA, 0xFF)
@@ -576,20 +632,28 @@ function Convert-OnePng {
             $indices = [GarminMipPng8]::ConvertFloydSteinberg($buf, $canvas.Width, $canvas.Height, $stride, $AlphaThreshold)
         }
 
-        $outPath = Join-Path $outputFull $File.Name
+        $relativeName = if ($inputIsFolder) {
+            Get-RelativePath $inputRootFull $File.FullName
+        } else {
+            $File.Name
+        }
+        $outPath = Join-Path $outputFull $relativeName
         if ([System.IO.Path]::GetFullPath($outPath).Equals([System.IO.Path]::GetFullPath($File.FullName), [System.StringComparison]::OrdinalIgnoreCase)) {
             Stop-WithUsage "Refusing to overwrite input file: $($File.FullName). Choose a different -OutputDir."
+        }
+        $outDir = [System.IO.Path]::GetDirectoryName($outPath)
+        if (-not (Test-Path -LiteralPath $outDir)) {
+            New-Item -ItemType Directory -Path $outDir | Out-Null
         }
 
         Write-MipPng8 -Path $outPath -W $canvas.Width -H $canvas.Height -Indices $indices
         $outSize = (Get-Item -LiteralPath $outPath).Length
-        Write-Output ("{0,-32} {1,4}x{2,-4} -> {3,4}x{4,-4} {5,8:N1} KB" -f $File.Name, $srcW, $srcH, $canvas.Width, $canvas.Height, ($outSize / 1KB))
+        Write-Output ("{0,-32} {1,4}x{2,-4} -> {3,4}x{4,-4} {5,8:N1} KB" -f $relativeName, $srcW, $srcH, $canvas.Width, $canvas.Height, ($outSize / 1KB))
     } finally {
         $canvas.Dispose()
     }
 }
 
-$inputItem = Get-Item -LiteralPath $inputFull
 if ($inputItem.PSIsContainer) {
     $files = Get-ChildItem -LiteralPath $inputItem.FullName -Filter *.png -File -Recurse:$Recurse | Sort-Object FullName
 } else {

@@ -6,9 +6,9 @@
 #
 # Examples:
 #   .\make_gif.ps1 .\photo.jpg
-#   .\make_gif.ps1 .\photo.jpg -MaxKB 32 -MaxDim 240
-#   .\make_gif.ps1 .\movie.mp4 -MaxKB 48 -MaxDim 220 -Seconds 8 -Fps 10 -MaxColors 64
-#   .\make_gif.ps1 -MaxKB 28 -MaxDim 180
+#   .\make_gif.ps1 .\photo.jpg -MaxSizeKB 32 -Dim 240
+#   .\make_gif.ps1 .\movie.mp4 -MaxSizeKB 48 -Dim 220 -Fps 10 -Colors 64
+#   .\make_gif.ps1 -MaxSizeKB 28 -Dim 180
 #
 # Output:
 #   input.ext -> input.gif
@@ -24,28 +24,17 @@ param(
     [string]$Path,
 
     # Optional final .gif size limit in KB.
-    [object]$MaxKB = $null,
+    [object]$MaxSizeKB = $null,
 
     # Optional longest output side limit.
-    [object]$MaxDim = $null,
+    [object]$Dim = $null,
 
-    # Optional video sampling fps.
+    # Optional target video sampling fps.
     [object]$Fps = $null,
-
-    # Optional video duration from -Start.
-    [object]$Seconds = $null,
-
-    # Optional maximum video frames after similar-frame skipping.
-    [object]$MaxFrames = $null,
 
     # Optional GIF palette size. 64 uses the fixed Garmin MIP RGB222 palette:
     # each RGB channel is 0/85/170/255.
-    [object]$MaxColors = $null,
-
-    # Optional start offset for video clips.
-    [object]$Start = 0.0,
-
-    [string]$Mode = "auto",
+    [object]$Colors = $null,
 
     [string]$Output,
 
@@ -63,42 +52,35 @@ function Show-Usage {
     Write-Host ""
     Write-Host "Usage:" -ForegroundColor Yellow
     Write-Host "  .\$script <input image/video> [optional limits]"
-    Write-Host "  .\$script <video> -MaxKB 48 -MaxDim 220 -Seconds 8 -Fps 10 -MaxColors 64"
+    Write-Host "  .\$script <video> -MaxSizeKB 48 -Dim 220 -Fps 10 -Colors 64"
     Write-Host "  .\$script -Help"
     Write-Host ""
     Write-Host "Examples:" -ForegroundColor Yellow
     Write-Host "  .\$script .\photo.jpg"
     Write-Host "  .\$script .\movie.mp4"
-    Write-Host "  .\$script .\photo.jpg -MaxKB 32 -MaxDim 240"
-    Write-Host "  .\$script .\movie.mp4 -MaxKB 48 -MaxDim 220 -Seconds 8 -Fps 10 -MaxColors 64"
-    Write-Host "  .\$script .\movie.mp4 -MaxKB 32 -MaxDim 180 -Start 5 -Seconds 6"
-    Write-Host "  .\$script -MaxKB 28 -MaxDim 180"
+    Write-Host "  .\$script .\photo.jpg -MaxSizeKB 32"
+    Write-Host "  .\$script .\movie.mp4 -MaxSizeKB 48"
+    Write-Host "  .\$script .\movie.mp4 -MaxSizeKB 48 -Dim 180"
+    Write-Host "  .\$script -MaxSizeKB 28 -Dim 180"
     Write-Host ""
     Write-Host "Garmin watch-friendly full example:" -ForegroundColor Yellow
-    Write-Host "  .\$script .\movie.mp4 -Mode video -Output .\watch.gif -MaxKB 50 -MaxDim 240 -Fps 10 -Seconds 8 -MaxFrames 48 -MaxColors 64 -Start 0"
+    Write-Host "  .\$script .\movie.mp4 -Output .\watch.gif -MaxSizeKB 50 -Dim 240 -Fps 10 -Colors 64"
     Write-Host "  # input file: source image/video; put it first so PowerShell binds it to Path."
-    Write-Host "  # -Mode video: forces video handling when the extension is unusual or ambiguous."
     Write-Host "  # -Output .\watch.gif: writes watch.gif and watch.b64 together."
-    Write-Host "  # -MaxKB 50: keeps GIF bytes small for watch storage, decoding time, and URL import."
-    Write-Host "  # -MaxDim 240: caps the longest side for small round Garmin screens and lower memory use."
-    Write-Host "  # -Fps 10: enough motion for watch playback without wasting frames."
-    Write-Host "  # -Seconds 8: short clips decode faster and leave less work for the watch CPU."
-    Write-Host "  # -MaxFrames 48: a hard frame cap after similar-frame skipping; protects memory/time."
-    Write-Host "  # -MaxColors 64: uses the fixed Garmin MIP RGB222 palette, not a random GIF palette."
-    Write-Host "  # -Start 0: starts at the beginning; raise it to cut away an intro."
+    Write-Host "  # -MaxSizeKB 50: limits GIF bytes for watch storage, decoding time, and URL import."
+    Write-Host "  # Omit -Dim/-Fps/-Colors when the script may freely degrade them to fit -MaxSizeKB."
+    Write-Host "  # Provide -Dim/-Fps/-Colors only when that value must stay fixed."
+    Write-Host "  # Sparse video sampling is spread across the whole clip; each time bucket prefers keyframes/scene changes."
+    Write-Host "  # -Colors 64: uses the fixed Garmin MIP RGB222 palette, not a random GIF palette."
     Write-Host "  # -KeepTemp: optional debug flag; add only when you want to inspect trial GIFs."
-    Write-Host "  # Similar-frame skipping is enabled only when -MaxKB or -MaxFrames is supplied."
+    Write-Host "  # Omitted quality settings may auto-degrade when -MaxSizeKB is set."
     Write-Host ""
     Write-Host "Parameters:" -ForegroundColor Yellow
-    Write-Host "  All limits are opt-in. If you omit a limit, the script does not apply that limit."
-    Write-Host "  -MaxKB       Optional final GIF size limit in KB. Omitted: no size limit"
-    Write-Host "  -MaxDim      Optional longest output side limit. Omitted: keep source dimensions"
-    Write-Host "  -Fps         Optional video sampling fps. Omitted: keep source timing"
-    Write-Host "  -Seconds     Optional video duration from -Start. Omitted: no duration trim"
-    Write-Host "  -MaxFrames   Optional maximum video frames; also enables similar-frame skipping"
-    Write-Host "  -MaxColors   Optional GIF palette limit. 64 = fixed Garmin MIP RGB222 colors"
-    Write-Host "  -Start       Video start offset in seconds. Default: 0"
-    Write-Host "  -Mode        auto/image/video. Default: auto"
+    Write-Host "  All limits are opt-in. If you omit video limits, the script converts the full clip."
+    Write-Host "  -MaxSizeKB   Optional final GIF size limit in KB. Omitted: no size limit"
+    Write-Host "  -Dim         Optional fixed longest-side value. Omitted with -MaxSizeKB: auto 240 down to 4"
+    Write-Host "  -Fps         Optional fixed sampling fps; decimals are allowed. Below 1 samples sparsely but plays at 1fps"
+    Write-Host "  -Colors      Optional fixed GIF palette value. Omitted with -MaxSizeKB: auto 64 down to 2"
     Write-Host "  -Output      Optional output .gif path. .b64 is written next to it"
     Write-Host "  -KeepTemp    Keep temporary trial GIFs for inspection"
     Write-Host ""
@@ -114,6 +96,12 @@ function Fail-Usage([string]$message) {
     Write-Host ""
     Write-Host "[error] $message" -ForegroundColor Red
     Show-Usage
+    exit 1
+}
+
+function Fail-Runtime([string]$message) {
+    Write-Host ""
+    Write-Host "[error] $message" -ForegroundColor Red
     exit 1
 }
 
@@ -186,9 +174,25 @@ function Pick-Input {
     )
     $files = Get-ChildItem -Path $PSScriptRoot -File |
         Where-Object {
-            $exts -contains $_.Extension.ToLowerInvariant() -and
-            $_.Extension.ToLowerInvariant() -ne ".b64" -and
-            $_.BaseName -notmatch "^(sample|out|tmp)$"
+            $file = $_
+            $ext = $file.Extension.ToLowerInvariant()
+            $keep = ($exts -contains $ext) -and ($file.BaseName -notmatch "^(sample|out|tmp)$")
+
+            if ($keep -and $ext -eq ".gif") {
+                $b64Path = Join-Path $file.DirectoryName ($file.BaseName + ".b64")
+                if (Test-Path -LiteralPath $b64Path) {
+                    $sameBaseSource = Get-ChildItem -LiteralPath $file.DirectoryName -File |
+                        Where-Object {
+                            $_.BaseName -eq $file.BaseName -and
+                            $_.Extension.ToLowerInvariant() -ne ".gif" -and
+                            $exts -contains $_.Extension.ToLowerInvariant()
+                        } |
+                        Select-Object -First 1
+                    if ($sameBaseSource -ne $null) { $keep = $false }
+                }
+            }
+
+            $keep
         } |
         Sort-Object LastWriteTime -Descending
     if ($files.Count -eq 0) {
@@ -204,11 +208,53 @@ function Is-VideoPath([string]$file) {
     return $videoExts -contains ([System.IO.Path]::GetExtension($file).ToLowerInvariant())
 }
 
-function Invoke-Checked([string]$exe, [string[]]$argv) {
+function Invoke-Checked([string]$exe, [string[]]$argv, [object]$progressTotalSeconds = $null, [string]$progressLabel = "") {
     $old = $ErrorActionPreference
     $ErrorActionPreference = "Continue"
     try {
-        $lines = @(& $exe @argv 2>&1 | ForEach-Object { $_.ToString() })
+        $lines = New-Object System.Collections.Generic.List[string]
+        $showProgress = Has-Value $progressLabel
+        $lastPrint = [DateTime]::MinValue
+        $lastPercent = -1
+
+        if ($showProgress) {
+            Write-Host "[progress] ffmpeg started; first percentage can take a while while the GIF palette is prepared."
+        }
+
+        & $exe @argv 2>&1 | ForEach-Object {
+            $line = $_.ToString()
+            [void]$lines.Add($line)
+
+            if ($showProgress) {
+                $secondsDone = Convert-FfmpegProgressSeconds $line
+                if ($secondsDone -ne $null) {
+                    $now = Get-Date
+                    if ((Has-Value $progressTotalSeconds) -and ([double]$progressTotalSeconds -gt 0)) {
+                        $total = [double]$progressTotalSeconds
+                        $percent = [Math]::Min(100, [Math]::Max(0, [int][Math]::Floor(($secondsDone / $total) * 100.0)))
+                        $status = "{0} / {1}" -f (Format-Seconds $secondsDone), (Format-Seconds $total)
+                        Write-Progress -Activity $progressLabel -Status $status -PercentComplete $percent
+                        if ($percent -ne $lastPercent -or ($now - $lastPrint).TotalSeconds -ge 2) {
+                            Write-Host ("[progress] {0}%  {1}" -f $percent, $status)
+                            $lastPrint = $now
+                            $lastPercent = $percent
+                        }
+                    } else {
+                        $status = "processed {0}" -f (Format-Seconds $secondsDone)
+                        Write-Progress -Activity $progressLabel -Status $status
+                        if (($now - $lastPrint).TotalSeconds -ge 2) {
+                            Write-Host ("[progress] {0}" -f $status)
+                            $lastPrint = $now
+                        }
+                    }
+                }
+            }
+        }
+
+        if ($showProgress) {
+            Write-Progress -Activity $progressLabel -Completed
+        }
+
         if ($LASTEXITCODE -ne 0) {
             $shownArgs = ($argv | ForEach-Object {
                 if ($_ -eq "") {
@@ -219,12 +265,208 @@ function Invoke-Checked([string]$exe, [string[]]$argv) {
                     $_
                 }
             }) -join " "
-            $detail = ($lines | Select-Object -Last 30) -join "`n"
+            $detail = ($lines.ToArray() | Select-Object -Last 30) -join "`n"
             throw "$([System.IO.Path]::GetFileName($exe)) exited with code $LASTEXITCODE`nCommand: $shownArgs`n$detail"
+        }
+        if ($showProgress) {
+            Write-Host "[progress] done"
         }
     } finally {
         $ErrorActionPreference = $old
     }
+}
+
+function Convert-FfmpegProgressSeconds([string]$line) {
+    if ($line -match "^out_time_(?:us|ms)=(\d+)$") {
+        return ([double]$Matches[1]) / 1000000.0
+    }
+    if ($line -match "^out_time=([0-9:.]+)$") {
+        $ts = [TimeSpan]::Zero
+        if ([TimeSpan]::TryParse($Matches[1], [Globalization.CultureInfo]::InvariantCulture, [ref]$ts)) {
+            return $ts.TotalSeconds
+        }
+    }
+    return $null
+}
+
+function Format-Seconds([double]$seconds) {
+    $whole = [int][Math]::Max(0, [Math]::Round($seconds))
+    $hours = [int][Math]::Floor($whole / 3600)
+    $minutes = [int][Math]::Floor(($whole % 3600) / 60)
+    $secs = [int]($whole % 60)
+    if ($hours -gt 0) {
+        return "{0}:{1:00}:{2:00}" -f $hours, $minutes, $secs
+    }
+    return "{0:00}:{1:00}" -f $minutes, $secs
+}
+
+function Get-VideoDurationSeconds($ffprobe, [string]$videoPath) {
+    if (-not $ffprobe) { return $null }
+    try {
+        $out = & $ffprobe @(
+            "-v", "error",
+            "-show_entries", "format=duration",
+            "-of", "default=nokey=1:noprint_wrappers=1",
+            $videoPath
+        ) 2>$null
+        if ($out -is [array]) { $out = $out[0] }
+        $d = 0.0
+        if ([double]::TryParse(
+                ($out | Out-String).Trim(),
+                [Globalization.NumberStyles]::Float,
+                [Globalization.CultureInfo]::InvariantCulture,
+                [ref]$d)) {
+            return $d
+        }
+    } catch {}
+    return $null
+}
+
+function Get-ProgressTotalSeconds($sourceDuration) {
+    if ((Has-Value $sourceDuration) -and ([double]$sourceDuration -gt 0)) {
+        return [double]$sourceDuration
+    }
+    return $null
+}
+
+function Get-Base64CharCount([int64]$byteCount) {
+    if ($byteCount -le 0) { return [int64]0 }
+    return ([int64][Math]::Floor(([double]($byteCount + 2)) / 3.0)) * 4
+}
+
+function Write-Base64FileStreaming([string]$inputPath, [string]$outputPath) {
+    $inputInfo = Get-Item -LiteralPath $inputPath
+    $totalBytes = [int64]$inputInfo.Length
+    $expectedChars = Get-Base64CharCount $totalBytes
+    $tmpOutputPath = "$outputPath.tmp"
+    $inputStream = $null
+    $writer = $null
+    $completed = $false
+
+    Write-Host ("[b64] streaming {0} bytes -> {1} chars" -f $totalBytes, $expectedChars)
+    try {
+        Remove-Item -LiteralPath $tmpOutputPath -Force -ErrorAction SilentlyContinue
+        $inputStream = [System.IO.File]::Open($inputPath, [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read, [System.IO.FileShare]::Read)
+        $writer = [System.IO.StreamWriter]::new($tmpOutputPath, $false, [System.Text.Encoding]::ASCII, 1048576)
+
+        $buffer = New-Object byte[] (3 * 1024 * 1024)
+        $carry = New-Object byte[] 2
+        $carryCount = 0
+        $bytesDone = [int64]0
+        $lastPrint = [DateTime]::MinValue
+        $lastPercent = -1
+
+        while (($read = $inputStream.Read($buffer, 0, $buffer.Length)) -gt 0) {
+            $offset = 0
+
+            if ($carryCount -gt 0) {
+                $needed = 3 - $carryCount
+                if ($read -ge $needed) {
+                    $triple = New-Object byte[] 3
+                    [Array]::Copy($carry, 0, $triple, 0, $carryCount)
+                    [Array]::Copy($buffer, 0, $triple, $carryCount, $needed)
+                    $writer.Write([Convert]::ToBase64String($triple))
+                    $offset = $needed
+                    $carryCount = 0
+                } else {
+                    [Array]::Copy($buffer, 0, $carry, $carryCount, $read)
+                    $carryCount += $read
+                    $bytesDone += $read
+                    continue
+                }
+            }
+
+            $usable = $read - $offset
+            $remainder = $usable % 3
+            $encodeLen = $usable - $remainder
+            if ($encodeLen -gt 0) {
+                $writer.Write([Convert]::ToBase64String($buffer, $offset, $encodeLen))
+            }
+            if ($remainder -gt 0) {
+                [Array]::Copy($buffer, $offset + $encodeLen, $carry, 0, $remainder)
+                $carryCount = $remainder
+            }
+
+            $bytesDone += $read
+            $now = Get-Date
+            if ($totalBytes -gt 0) {
+                $percent = [Math]::Min(100, [Math]::Max(0, [int][Math]::Floor(($bytesDone / [double]$totalBytes) * 100.0)))
+                Write-Progress -Activity "Writing base64" -Status ("{0}%  {1} / {2} bytes" -f $percent, $bytesDone, $totalBytes) -PercentComplete $percent
+                if ($percent -ne $lastPercent -or ($now - $lastPrint).TotalSeconds -ge 2) {
+                    Write-Host ("[b64] {0}%  {1} / {2} bytes" -f $percent, $bytesDone, $totalBytes)
+                    $lastPrint = $now
+                    $lastPercent = $percent
+                }
+            }
+        }
+
+        if ($carryCount -gt 0) {
+            $tail = New-Object byte[] $carryCount
+            [Array]::Copy($carry, 0, $tail, 0, $carryCount)
+            $writer.Write([Convert]::ToBase64String($tail))
+        }
+
+        $writer.Flush()
+        $writer.Dispose()
+        $writer = $null
+        Move-Item -LiteralPath $tmpOutputPath -Destination $outputPath -Force
+        $completed = $true
+        Write-Progress -Activity "Writing base64" -Completed
+        Write-Host "[b64] done"
+        return $expectedChars
+    } finally {
+        if ($writer -ne $null) { $writer.Dispose() }
+        if ($inputStream -ne $null) { $inputStream.Dispose() }
+        if (-not $completed) {
+            Remove-Item -LiteralPath $tmpOutputPath -Force -ErrorAction SilentlyContinue
+        }
+    }
+}
+
+function Remove-StaleTempDirs([string]$currentDir) {
+    try {
+        $tempRoot = [System.IO.Path]::GetTempPath()
+        $cutoff = (Get-Date).AddHours(-1)
+        $removed = 0
+        $dirs = @(Get-ChildItem -LiteralPath $tempRoot -Directory -Filter "edc-photo-*" -ErrorAction SilentlyContinue)
+
+        foreach ($dir in $dirs) {
+            $full = $dir.FullName
+            if ((Has-Value $currentDir) -and [string]::Equals($full, $currentDir, [StringComparison]::OrdinalIgnoreCase)) {
+                continue
+            }
+
+            $keepPath = Join-Path $full "keep.txt"
+            if (Test-Path -LiteralPath $keepPath) {
+                continue
+            }
+
+            $remove = $false
+            $pidPath = Join-Path $full "owner.pid"
+            if (Test-Path -LiteralPath $pidPath) {
+                $pidText = (Get-Content -LiteralPath $pidPath -Raw -ErrorAction SilentlyContinue).Trim()
+                $ownerPid = 0
+                if ([int]::TryParse($pidText, [ref]$ownerPid) -and $ownerPid -gt 0) {
+                    $remove = ((Get-Process -Id $ownerPid -ErrorAction SilentlyContinue) -eq $null)
+                } else {
+                    $remove = $true
+                }
+            } elseif ($dir.LastWriteTime -lt $cutoff) {
+                $remove = $true
+            }
+
+            if ($remove) {
+                Remove-Item -LiteralPath $full -Recurse -Force -ErrorAction SilentlyContinue
+                if (-not (Test-Path -LiteralPath $full)) {
+                    $removed++
+                }
+            }
+        }
+
+        if ($removed -gt 0) {
+            Write-Host "[temp-cleanup] removed $removed stale temp folder(s)" -ForegroundColor Yellow
+        }
+    } catch {}
 }
 
 function Get-GifFrameCount($ffprobe, [string]$gifPath) {
@@ -290,35 +532,48 @@ function New-ImageFilter($dim, $colors, [bool]$useMipPalette) {
         return "[0:v]$pre[v];[v][1:v]paletteuse=dither=sierra2_4a"
     }
     $paletteGen = if (Has-Value $colors) {
-        "palettegen=max_colors=${colors}:stats_mode=single"
+        "palettegen=max_colors=${colors}:reserve_transparent=0:stats_mode=single"
     } else {
-        "palettegen=stats_mode=single"
+        "palettegen=reserve_transparent=0:stats_mode=single"
     }
     return "[0:v]$pre,split[a][b];[a]$paletteGen[p];[b][p]paletteuse=dither=sierra2_4a"
 }
 
-function New-VideoFilter($dim, $colors, $fps, $seconds, $maxFrames, [bool]$useMipPalette, [bool]$skipSimilar) {
+function New-VideoFilter($dim, $colors, $fps, [bool]$useMipPalette, $sourceDuration) {
     $parts = New-Object System.Collections.Generic.List[string]
-    if (Has-Value $fps) { [void]$parts.Add("fps=$fps") }
+    if (Has-Value $fps) {
+        if ([double]$fps -ge 1.0) {
+            $fpsArg = Format-DoubleArg ([double]$fps)
+            [void]$parts.Add("fps=fps=${fpsArg}:round=near")
+        } else {
+        $interval = 1.0 / [double]$fps
+        $intervalArg = Format-DoubleArg $interval
+        $goodOffsetArg = Format-DoubleArg ($interval * 0.20)
+        $fallbackOffsetArg = Format-DoubleArg ($interval * 0.50)
+        $bucket = "floor(t/${intervalArg})"
+        $prevBucket = "floor(prev_selected_t/${intervalArg})"
+        $bucketStart = "${bucket}*${intervalArg}"
+        $bucketOffset = "t-${bucketStart}"
+        $goodFrame = "gte(${bucketOffset}\,${goodOffsetArg})*(eq(pict_type\,I)+gt(scene\,0.035))"
+        if ((Has-Value $sourceDuration) -and ([double]$sourceDuration -gt 0)) {
+            $durationArg = Format-DoubleArg ([double]$sourceDuration)
+            $bucketEnd = "min((${bucket}+1)*${intervalArg}\,${durationArg})"
+            $fallbackFrame = "gte(t\,${bucketStart}+min(${fallbackOffsetArg}\,(${bucketEnd}-${bucketStart})*0.50))"
+        } else {
+            $fallbackFrame = "gte(${bucketOffset}\,${fallbackOffsetArg})"
+        }
+        $firstBucket = "isnan(prev_selected_t)*(${goodFrame}+${fallbackFrame})"
+        $nextBucket = "gt(${bucket}\,${prevBucket})*(${goodFrame}+${fallbackFrame})"
+        [void]$parts.Add("setpts=PTS-STARTPTS")
+        [void]$parts.Add("select='${firstBucket}+${nextBucket}'")
+        }
+    }
     $scale = New-ScaleExpr $dim
     if (Has-Value $scale) { [void]$parts.Add($scale) }
 
-    # Near-duplicate frames are skipped only when the user explicitly asks for a
-    # byte/frame limit. With no limits supplied, the script keeps the source
-    # cadence instead of doing hidden compression.
-    if ($skipSimilar) { [void]$parts.Add("mpdecimate") }
-    if (Has-Value $fps) {
-        [void]$parts.Add("setpts=N/($fps*TB)")
-    } else {
-        [void]$parts.Add("setpts=PTS-STARTPTS")
-    }
+    [void]$parts.Add("mpdecimate")
+    [void]$parts.Add("setpts=PTS-STARTPTS")
 
-    if ((Has-Value $seconds) -and $seconds -gt 0) {
-        [void]$parts.Add("trim=duration=$(Format-DoubleArg $seconds)")
-    }
-    if (Has-Value $maxFrames) {
-        [void]$parts.Add("trim=end_frame=$maxFrames")
-    }
     [void]$parts.Add("format=rgba")
 
     $pre = Join-Filters ($parts.ToArray())
@@ -326,9 +581,9 @@ function New-VideoFilter($dim, $colors, $fps, $seconds, $maxFrames, [bool]$useMi
         return "[0:v]$pre[v];[v][1:v]paletteuse=dither=sierra2_4a"
     }
     $paletteGen = if (Has-Value $colors) {
-        "palettegen=max_colors=${colors}:stats_mode=diff"
+        "palettegen=max_colors=${colors}:reserve_transparent=0:stats_mode=diff"
     } else {
-        "palettegen=stats_mode=diff"
+        "palettegen=reserve_transparent=0:stats_mode=diff"
     }
     return "[0:v]$pre,split[a][b];[a]$paletteGen[p];[b][p]paletteuse=dither=sierra2_4a"
 }
@@ -340,11 +595,12 @@ function Invoke-EncodeGif(
     [string]$filter,
     [string]$palettePath,
     [bool]$video,
-    [double]$start
+    [object]$progressTotalSeconds,
+    [string]$progressLabel
 ) {
-    $args = @("-hide_banner", "-loglevel", "error", "-y")
-    if ($video -and $start -gt 0) {
-        $args += @("-ss", ([string]::Format([Globalization.CultureInfo]::InvariantCulture, "{0:0.###}", $start)))
+    $args = @("-hide_banner", "-loglevel", "error", "-nostdin", "-y")
+    if ($video) {
+        $args += @("-progress", "pipe:1")
     }
     $args += @("-i", $inputPath)
     if ($palettePath -ne $null -and $palettePath.Length -gt 0) {
@@ -354,8 +610,153 @@ function Invoke-EncodeGif(
     if (-not $video) {
         $args += @("-frames:v", "1")
     }
-    $args += @($outputGif)
-    Invoke-Checked $ffmpeg $args
+    $args += @("-loop", "0", $outputGif)
+    Invoke-Checked $ffmpeg $args $progressTotalSeconds $progressLabel
+}
+
+function Set-GifFrameDelay([string]$gifPath, [int]$delayCs) {
+    $delay = [Math]::Min(65535, [Math]::Max(1, $delayCs))
+    $lo = [byte]($delay -band 0xFF)
+    $hi = [byte](($delay -shr 8) -band 0xFF)
+    $tmpPath = "$gifPath.delay.tmp"
+    $inputStream = $null
+    $outputStream = $null
+    $completed = $false
+    $patched = 0
+
+    function Copy-ExactBytes([int]$count) {
+        for ($i = 0; $i -lt $count; $i++) {
+            $x = $inputStream.ReadByte()
+            if ($x -eq -1) { return $false }
+            $outputStream.WriteByte([byte]$x)
+        }
+        return $true
+    }
+
+    function Copy-SubBlocks {
+        while ($true) {
+            $size = $inputStream.ReadByte()
+            if ($size -eq -1) { return $false }
+            $outputStream.WriteByte([byte]$size)
+            if ($size -eq 0) { return $true }
+            if (-not (Copy-ExactBytes $size)) { return $false }
+        }
+    }
+
+    function Copy-Rest {
+        while (($x = $inputStream.ReadByte()) -ne -1) {
+            $outputStream.WriteByte([byte]$x)
+        }
+    }
+
+    try {
+        Remove-Item -LiteralPath $tmpPath -Force -ErrorAction SilentlyContinue
+        $inputStream = [System.IO.File]::Open($gifPath, [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read, [System.IO.FileShare]::Read)
+        $outputStream = [System.IO.File]::Open($tmpPath, [System.IO.FileMode]::Create, [System.IO.FileAccess]::Write, [System.IO.FileShare]::None)
+
+        $header = New-Object byte[] 13
+        $headerRead = $inputStream.Read($header, 0, $header.Length)
+        if ($headerRead -lt $header.Length) {
+            throw "Invalid GIF: header is too short."
+        }
+        $outputStream.Write($header, 0, $header.Length)
+
+        $packed = [int]$header[10]
+        if (($packed -band 0x80) -ne 0) {
+            $gctBytes = 3 * [int][Math]::Pow(2, (($packed -band 0x07) + 1))
+            if (-not (Copy-ExactBytes $gctBytes)) {
+                throw "Invalid GIF: global color table is truncated."
+            }
+        }
+
+        $done = $false
+        while (-not $done -and (($marker = $inputStream.ReadByte()) -ne -1)) {
+            $outputStream.WriteByte([byte]$marker)
+
+            if ($marker -eq 0x21) {
+                $label = $inputStream.ReadByte()
+                if ($label -eq -1) { break }
+                $outputStream.WriteByte([byte]$label)
+
+                if ($label -ne 0xF9) {
+                    if (-not (Copy-SubBlocks)) { break }
+                    continue
+                }
+
+                $blockSize = $inputStream.ReadByte()
+                if ($blockSize -eq -1) { break }
+                $outputStream.WriteByte([byte]$blockSize)
+
+                if ($blockSize -ne 4) {
+                    if ($blockSize -gt 0 -and -not (Copy-ExactBytes $blockSize)) { break }
+                    if (-not (Copy-SubBlocks)) { break }
+                    continue
+                }
+
+                $data = New-Object byte[] 4
+                $read = $inputStream.Read($data, 0, 4)
+                if ($read -lt 4) {
+                    if ($read -gt 0) { $outputStream.Write($data, 0, $read) }
+                    break
+                }
+
+                $data[1] = $lo
+                $data[2] = $hi
+                $outputStream.Write($data, 0, 4)
+
+                $terminator = $inputStream.ReadByte()
+                if ($terminator -ne -1) { $outputStream.WriteByte([byte]$terminator) }
+                $patched++
+                continue
+            }
+
+            if ($marker -eq 0x2C) {
+                $descriptor = New-Object byte[] 9
+                $descriptorRead = $inputStream.Read($descriptor, 0, $descriptor.Length)
+                if ($descriptorRead -gt 0) { $outputStream.Write($descriptor, 0, $descriptorRead) }
+                if ($descriptorRead -lt $descriptor.Length) { break }
+
+                $imagePacked = [int]$descriptor[8]
+                if (($imagePacked -band 0x80) -ne 0) {
+                    $lctBytes = 3 * [int][Math]::Pow(2, (($imagePacked -band 0x07) + 1))
+                    if (-not (Copy-ExactBytes $lctBytes)) { break }
+                }
+
+                $lzwCodeSize = $inputStream.ReadByte()
+                if ($lzwCodeSize -eq -1) { break }
+                $outputStream.WriteByte([byte]$lzwCodeSize)
+                if (-not (Copy-SubBlocks)) { break }
+                continue
+            }
+
+            if ($marker -eq 0x3B) {
+                Copy-Rest
+                $done = $true
+                break
+            }
+
+            Copy-Rest
+            $done = $true
+        }
+
+        $outputStream.Flush()
+        $outputStream.Dispose()
+        $outputStream = $null
+        $inputStream.Dispose()
+        $inputStream = $null
+        Move-Item -LiteralPath $tmpPath -Destination $gifPath -Force
+        $completed = $true
+    } finally {
+        if ($outputStream -ne $null) { $outputStream.Dispose() }
+        if ($inputStream -ne $null) { $inputStream.Dispose() }
+        if (-not $completed) {
+            Remove-Item -LiteralPath $tmpPath -Force -ErrorAction SilentlyContinue
+        }
+    }
+
+    if ($patched -gt 0) {
+        Write-Host ("[timing] {0} frame delay(s) set to {1}cs" -f $patched, $delay)
+    }
 }
 
 function Get-UniqueNumbers([int[]]$values, [int]$minValue) {
@@ -383,8 +784,15 @@ function New-DimCandidates($maxDim, [bool]$sizeLimited) {
         [int]($maxDim * 0.50),
         [int]($maxDim * 0.42),
         [int]($maxDim * 0.34),
-        48
-    ) 1 | Where-Object { $_ -le $maxDim }
+        64,
+        48,
+        32,
+        24,
+        16,
+        12,
+        8,
+        4
+    ) 4 | Where-Object { $_ -le $maxDim }
 }
 
 function New-ColorCandidates($maxColors, [bool]$sizeLimited) {
@@ -404,42 +812,57 @@ function New-ColorCandidates($maxColors, [bool]$sizeLimited) {
 function New-FpsCandidates($fps, [bool]$sizeLimited) {
     if (-not (Has-Value $fps)) { return @($null) }
     if (-not $sizeLimited) { return @($fps) }
-    return Get-UniqueNumbers @(
-        $fps,
-        [int]($fps * 0.80),
-        [int]($fps * 0.65),
-        [int]($fps * 0.50),
-        [int]($fps * 0.35),
+    $maxFps = [double]$fps
+    $raw = @(
+        $maxFps,
+        ($maxFps * 0.80),
+        ($maxFps * 0.65),
+        ($maxFps * 0.50),
+        ($maxFps * 0.35),
+        ($maxFps * 0.25),
+        8,
+        6,
+        5,
+        4,
+        3,
         2,
-        1
-    ) 1 | Where-Object { $_ -le $fps }
-}
-
-function New-SecondsCandidates($seconds, [bool]$sizeLimited) {
-    if (-not (Has-Value $seconds)) { return @($null) }
-    if (-not $sizeLimited -or $seconds -le 0) { return @($seconds) }
-    return @(
-        $seconds,
-        [Math]::Max(1.0, $seconds * 0.75),
-        [Math]::Max(1.0, $seconds * 0.55),
-        [Math]::Max(1.0, $seconds * 0.38)
+        1,
+        0.75,
+        0.5,
+        0.33,
+        0.25,
+        0.2,
+        0.15,
+        0.1,
+        0.075,
+        0.05
     )
-}
-
-function New-FrameCandidates($maxFrames, [bool]$sizeLimited) {
-    if (-not (Has-Value $maxFrames)) { return @($null) }
-    if (-not $sizeLimited) { return @($maxFrames) }
-    return Get-UniqueNumbers @(
-        $maxFrames,
-        [int]($maxFrames * 0.75),
-        [int]($maxFrames * 0.55),
-        [int]($maxFrames * 0.38),
-        1
-    ) 1 | Where-Object { $_ -le $maxFrames }
+    $seen = @{}
+    $out = New-Object System.Collections.Generic.List[double]
+    foreach ($v in ($raw | Where-Object { [double]$_ -gt 0 -and [double]$_ -le $maxFps } | Sort-Object -Descending)) {
+        $rounded = [Math]::Round([double]$v, 3)
+        if ($rounded -le 0) { continue }
+        $key = [string]::Format([Globalization.CultureInfo]::InvariantCulture, "{0:0.######}", $rounded)
+        if (-not $seen.ContainsKey($key)) {
+            $seen[$key] = $true
+            [void]$out.Add($rounded)
+        }
+    }
+    return $out.ToArray()
 }
 
 function Format-CandidateLabel($value, [string]$noneLabel) {
-    if (Has-Value $value) { return $value.ToString() }
+    if (Has-Value $value) {
+        $d = 0.0
+        if ([double]::TryParse(
+                $value.ToString(),
+                [Globalization.NumberStyles]::Float,
+                [Globalization.CultureInfo]::InvariantCulture,
+                [ref]$d)) {
+            return Format-DoubleArg $d
+        }
+        return $value.ToString()
+    }
     return $noneLabel
 }
 
@@ -455,22 +878,21 @@ if ($Help) {
 
 $tmpDir = $null
 try {
-    $MaxKB = Convert-OptionalIntParam "MaxKB" $MaxKB
-    $MaxDim = Convert-OptionalIntParam "MaxDim" $MaxDim
-    $Fps = Convert-OptionalIntParam "Fps" $Fps
-    $Seconds = Convert-OptionalDoubleParam "Seconds" $Seconds
-    $MaxFrames = Convert-OptionalIntParam "MaxFrames" $MaxFrames
-    $MaxColors = Convert-OptionalIntParam "MaxColors" $MaxColors
-    $Start = Convert-DoubleParam "Start" $Start
+    $userSetDim = Has-Value $Dim
+    $userSetFps = Has-Value $Fps
+    $userSetColors = Has-Value $Colors
 
-    if (Has-Value $MaxKB) { Assert-Min "MaxKB" $MaxKB 1 }
-    if (Has-Value $MaxDim) { Assert-Min "MaxDim" $MaxDim 1 }
-    if (Has-Value $Fps) { Assert-Min "Fps" $Fps 1 }
-    if (Has-Value $Seconds) { Assert-Min "Seconds" $Seconds 0 }
-    if (Has-Value $MaxFrames) { Assert-Min "MaxFrames" $MaxFrames 1 }
-    if (Has-Value $MaxColors) { Assert-Range "MaxColors" $MaxColors 2 256 }
-    Assert-Min "Start" $Start 0
-    Assert-OneOf "Mode" $Mode @("auto", "image", "video")
+    $MaxSizeKB = Convert-OptionalIntParam "MaxSizeKB" $MaxSizeKB
+    $Dim = Convert-OptionalIntParam "Dim" $Dim
+    $Fps = Convert-OptionalDoubleParam "Fps" $Fps
+    $Colors = Convert-OptionalIntParam "Colors" $Colors
+
+    if (Has-Value $MaxSizeKB) { Assert-Min "MaxSizeKB" $MaxSizeKB 1 }
+    if (Has-Value $Dim) { Assert-Min "Dim" $Dim 4 }
+    if ((Has-Value $Fps) -and ([double]$Fps -le 0)) {
+        Fail-Usage "Fps must be > 0. Got: $Fps"
+    }
+    if (Has-Value $Colors) { Assert-Range "Colors" $Colors 2 256 }
 
     if (-not $Path) { $Path = Pick-Input }
     if (-not (Test-Path -LiteralPath $Path)) {
@@ -497,40 +919,80 @@ if ($Output) {
 }
 $b64Out = [System.IO.Path]::ChangeExtension($gifOut, ".b64")
 
-$isVideo = if ($Mode -eq "video") { $true } elseif ($Mode -eq "image") { $false } else { Is-VideoPath $inFull }
-$sizeLimited = Has-Value $MaxKB
-$maxBytes = if ($sizeLimited) { [int64]$MaxKB * 1024 } else { 0 }
+$isVideo = Is-VideoPath $inFull
+$sourceDuration = if ($isVideo) { Get-VideoDurationSeconds $ffprobe $inFull } else { $null }
+$sizeLimited = Has-Value $MaxSizeKB
+$maxBytes = if ($sizeLimited) { [int64]$MaxSizeKB * 1024 } else { 0 }
+if ($isVideo -and
+        -not $sizeLimited -and
+        ([System.IO.Path]::GetExtension($inFull).ToLowerInvariant() -ne ".gif") -and
+        -not (Has-Value $Dim) -and
+        -not (Has-Value $Fps)) {
+    $durationLabel = if (Has-Value $sourceDuration) { Format-Seconds ([double]$sourceDuration) } else { "unknown duration" }
+    Write-Warning "No video scale/fps limits supplied; converting the full source ($durationLabel). This can take a long time."
+}
+$dimLimit = $Dim
+$fpsLimit = $Fps
+$colorsLimit = $Colors
+$autoQuality = New-Object System.Collections.Generic.List[string]
+if ($sizeLimited) {
+    if (-not $userSetDim) {
+        $dimLimit = 240
+        [void]$autoQuality.Add("dim 240..4")
+    }
+    if ($isVideo -and -not $userSetFps) {
+        $fpsLimit = 10
+        [void]$autoQuality.Add("fps 10..0.05")
+    }
+    if (-not $userSetColors) {
+        $colorsLimit = 64
+        [void]$autoQuality.Add("colors 64..2")
+    }
+    if ($autoQuality.Count -gt 0) {
+        Write-Host ("[auto-quality] {0}" -f ($autoQuality -join " ")) -ForegroundColor Yellow
+    }
+}
+Remove-StaleTempDirs $null
 $tmpDir = Join-Path $env:TEMP ("edc-photo-" + [Guid]::NewGuid().ToString("N"))
 New-Item -ItemType Directory -Path $tmpDir | Out-Null
+[System.IO.File]::WriteAllText(
+    (Join-Path $tmpDir "owner.pid"),
+    $PID.ToString([Globalization.CultureInfo]::InvariantCulture),
+    [System.Text.Encoding]::ASCII)
 $mipPalettePath = Join-Path $tmpDir "garmin-mip-rgb222-64.ppm"
 Write-GarminMip64Palette $mipPalettePath
 
-    $paletteMode = if (-not (Has-Value $MaxColors)) {
+    $paletteMode = if (-not (Has-Value $colorsLimit)) {
         "dynamic<=256"
-    } elseif ($MaxColors -eq 64) {
+    } elseif ($colorsLimit -eq 64) {
         "GarminMIP64"
-    } elseif ($MaxColors -gt 64) {
-        "dynamic<=${MaxColors}, fallback=GarminMIP64"
+    } elseif ($colorsLimit -gt 64) {
+        "dynamic<=${colorsLimit}, fallback=GarminMIP64"
     } else {
-        "dynamic<=${MaxColors}"
+        "dynamic<=${colorsLimit}"
     }
     $limits = New-Object System.Collections.Generic.List[string]
-    if ($sizeLimited) { [void]$limits.Add("max=${MaxKB}KB") }
-    if (Has-Value $MaxDim) { [void]$limits.Add("dim<=${MaxDim}") }
-    if ($isVideo -and (Has-Value $Fps)) { [void]$limits.Add("fps<=${Fps}") }
-    if ($isVideo -and (Has-Value $Seconds)) { [void]$limits.Add("sec<=${Seconds}") }
-    if ($isVideo -and (Has-Value $MaxFrames)) { [void]$limits.Add("frames<=${MaxFrames}") }
-    if (Has-Value $MaxColors) { [void]$limits.Add("colors<=${MaxColors}") }
+    if ($sizeLimited) { [void]$limits.Add("size<=${MaxSizeKB}KB") }
+    if (Has-Value $dimLimit) {
+        $dimLabel = if ($userSetDim) { "dim=${dimLimit}" } else { "dim<=${dimLimit}" }
+        [void]$limits.Add($dimLabel)
+    }
+    if ($isVideo -and (Has-Value $fpsLimit)) {
+        $fpsLabel = if ($userSetFps) { "fps=${fpsLimit}" } else { "fps<=${fpsLimit}" }
+        [void]$limits.Add($fpsLabel)
+    }
+    if (Has-Value $colorsLimit) {
+        $colorsLabel = if ($userSetColors) { "colors=${colorsLimit}" } else { "colors<=${colorsLimit}" }
+        [void]$limits.Add($colorsLabel)
+    }
     if ($limits.Count -eq 0) { [void]$limits.Add("unrestricted") }
 
     Write-Host "[input] $inFull" -ForegroundColor Cyan
     Write-Host "[mode]  $(if ($isVideo) { 'video' } else { 'image' })  $($limits -join ' ') palette=$paletteMode" -ForegroundColor Cyan
 
-    $dims = @(New-DimCandidates $MaxDim $sizeLimited)
-    $colorCandidates = @(New-ColorCandidates $MaxColors $sizeLimited)
-    $fpsCandidates = @(New-FpsCandidates $Fps $sizeLimited)
-    $secondsCandidates = @(New-SecondsCandidates $Seconds $sizeLimited)
-    $frameCandidates = @(New-FrameCandidates $MaxFrames $sizeLimited)
+    $dims = @(New-DimCandidates $dimLimit ($sizeLimited -and -not $userSetDim))
+    $colorCandidates = @(New-ColorCandidates $colorsLimit ($sizeLimited -and -not $userSetColors))
+    $fpsCandidates = @(New-FpsCandidates $fpsLimit ($sizeLimited -and -not $userSetFps))
 
     $bestPath = $null
     $bestInfo = $null
@@ -539,28 +1001,47 @@ Write-GarminMip64Palette $mipPalettePath
     $dimIndex = 0
     $colorIndex = 0
     $fpsIndex = 0
-    $secIndex = 0
-    $frameIndex = 0
     $maxAttempts = if ($sizeLimited) { if ($isVideo) { 96 } else { 48 } } else { 1 }
 
-    while ($attempt -lt $maxAttempts) {
+    $reuseInputGif = (
+        ([System.IO.Path]::GetExtension($inFull).ToLowerInvariant() -eq ".gif") -and
+        -not $sizeLimited -and
+        -not (Has-Value $dimLimit) -and
+        -not (Has-Value $fpsLimit) -and
+        -not (Has-Value $colorsLimit)
+    )
+    if ($reuseInputGif) {
+        $size = (Get-Item -LiteralPath $inFull).Length
+        $frames = Get-GifFrameCount $ffprobe $inFull
+        $bestPath = $inFull
+        $bestInfo = @{
+            Size = $size; Dim = $null; Colors = $null; Fps = $null;
+            Frames = $frames
+        }
+        Write-Host "[reuse] input is already GIF; writing .b64 without re-encoding." -ForegroundColor Yellow
+    }
+
+    while ((-not $bestPath) -and $attempt -lt $maxAttempts) {
         $dim = $dims[$dimIndex]
         $colors = $colorCandidates[$colorIndex]
         $fpsTry = $fpsCandidates[$fpsIndex]
-        $sec = $secondsCandidates[$secIndex]
-        $maxFramesTry = $frameCandidates[$frameIndex]
 
         $attempt++
         $tmpGif = Join-Path $tmpDir ("try-$attempt.gif")
         $useMipPalette = ((Has-Value $colors) -and $colors -eq 64)
         $paletteArg = if ($useMipPalette) { $mipPalettePath } else { $null }
         if ($isVideo) {
-            $skipSimilar = ($sizeLimited -or (Has-Value $maxFramesTry))
-            $f = New-VideoFilter $dim $colors $fpsTry $sec $maxFramesTry $useMipPalette $skipSimilar
-            Invoke-EncodeGif $ffmpeg $inFull $tmpGif $f $paletteArg $true $Start
+            $f = New-VideoFilter $dim $colors $fpsTry $useMipPalette $sourceDuration
+            $progressTotal = Get-ProgressTotalSeconds $sourceDuration
+            $progressLabel = "Encoding GIF try $attempt"
+            Invoke-EncodeGif $ffmpeg $inFull $tmpGif $f $paletteArg $true $progressTotal $progressLabel
+            if ((Has-Value $fpsTry) -and ([double]$fpsTry -lt 1.0)) {
+                $delayCs = 100
+                Set-GifFrameDelay $tmpGif $delayCs
+            }
         } else {
             $f = New-ImageFilter $dim $colors $useMipPalette
-            Invoke-EncodeGif $ffmpeg $inFull $tmpGif $f $paletteArg $false 0
+            Invoke-EncodeGif $ffmpeg $inFull $tmpGif $f $paletteArg $false $null ""
         }
 
         $size = (Get-Item $tmpGif).Length
@@ -568,7 +1049,7 @@ Write-GarminMip64Palette $mipPalettePath
         $frameLabel = if ($frames -lt 0) { "?" } else { $frames.toString() }
         $kb = [Math]::Round($size / 1024.0, 1)
         $videoLabel = if ($isVideo) {
-            " fps=$(Format-CandidateLabel $fpsTry 'source') sec=$(Format-CandidateLabel $sec 'full') cap=$(Format-CandidateLabel $maxFramesTry 'none')"
+            " fps=$(Format-CandidateLabel $fpsTry 'source')"
         } else {
             ""
         }
@@ -582,26 +1063,17 @@ Write-GarminMip64Palette $mipPalettePath
             $bestPath = $tmpGif
             $bestInfo = @{
                 Size = $size; Dim = $dim; Colors = $colors; Fps = $fpsTry;
-                Seconds = $sec; MaxFrames = $maxFramesTry; Frames = $frames
+                Frames = $frames
             }
             break
         }
 
-        # Degrade in watch-friendly order:
-        #   1. if the user asked for >64 colors, step down toward the watch palette;
-        #   2. try smaller dimensions while preserving Garmin MIP 64 colors;
-        #   3. then reduce fps/clip seconds for video;
-        #   4. only then go below 64 colors if the byte limit still cannot be met.
-        if ($colorIndex + 1 -lt $colorCandidates.Count -and (Has-Value $colors) -and $colors -gt 64) {
-            $colorIndex++
+        # When a byte limit requires retries, preserve the full video duration:
+        # sacrifice fps before dimensions, and only then try palette reductions.
+        if ($isVideo -and $fpsIndex + 1 -lt $fpsCandidates.Count) {
+            $fpsIndex++
         } elseif ($dimIndex + 1 -lt $dims.Count) {
             $dimIndex++
-        } elseif ($isVideo -and $fpsIndex + 1 -lt $fpsCandidates.Count) {
-            $fpsIndex++
-        } elseif ($isVideo -and $frameIndex + 1 -lt $frameCandidates.Count) {
-            $frameIndex++
-        } elseif ($isVideo -and $secIndex + 1 -lt $secondsCandidates.Count) {
-            $secIndex++
         } elseif ($colorIndex + 1 -lt $colorCandidates.Count) {
             $colorIndex++
         } else {
@@ -610,13 +1082,15 @@ Write-GarminMip64Palette $mipPalettePath
     }
 
     if (-not $bestPath) {
-        throw "Could not fit under ${MaxKB}KB with the limits you supplied. Add or lower -MaxDim, -Fps, -Seconds, -MaxFrames, or -MaxColors, or increase -MaxKB."
+        throw "Could not fit under ${MaxSizeKB}KB while preserving the full video duration. Remove or change fixed -Dim/-Fps/-Colors values, or increase -MaxSizeKB."
     }
 
-    Copy-Item -Path $bestPath -Destination $gifOut -Force
-    $bytes = [System.IO.File]::ReadAllBytes($gifOut)
-    $b64 = [Convert]::ToBase64String($bytes)
-    [System.IO.File]::WriteAllText($b64Out, $b64, [System.Text.Encoding]::ASCII)
+    $bestFull = (Resolve-Path -LiteralPath $bestPath).Path
+    $gifFull = [System.IO.Path]::GetFullPath($gifOut)
+    if (-not [string]::Equals($bestFull, $gifFull, [StringComparison]::OrdinalIgnoreCase)) {
+        Copy-Item -LiteralPath $bestPath -Destination $gifOut -Force
+    }
+    $b64Chars = Write-Base64FileStreaming $gifOut $b64Out
 
     $finalFrames = if ([int]$bestInfo.Frames -lt 0) { "?" } else { $bestInfo.Frames.toString() }
     Write-Host ""
@@ -627,15 +1101,19 @@ Write-GarminMip64Palette $mipPalettePath
         (Format-DimLabel $bestInfo.Dim),
         (Format-CandidateLabel $bestInfo.Colors "auto")) -ForegroundColor Green
     Write-Host "[saved] $gifOut" -ForegroundColor Green
-    Write-Host ("[saved] {0} ({1} chars)" -f $b64Out, $b64.Length) -ForegroundColor Green
+    Write-Host ("[saved] {0} ({1} chars)" -f $b64Out, $b64Chars) -ForegroundColor Green
     Write-Host ""
     Write-Host "Use Photo Album -> + Add -> URL, pointing to a raw text file containing the .b64 contents." -ForegroundColor Yellow
 } catch {
-    Fail-Usage $_.Exception.Message
+    Fail-Runtime $_.Exception.Message
 } finally {
     if ($tmpDir -eq $null) {
         # Error happened before temp directory creation.
     } elseif ($KeepTemp) {
+        [System.IO.File]::WriteAllText(
+            (Join-Path $tmpDir "keep.txt"),
+            "Kept by -KeepTemp on $(Get-Date -Format s)",
+            [System.Text.Encoding]::ASCII)
         Write-Host "[temp] $tmpDir" -ForegroundColor Yellow
     } else {
         Remove-Item -LiteralPath $tmpDir -Recurse -Force -ErrorAction SilentlyContinue
