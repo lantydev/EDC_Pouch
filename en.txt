@@ -1,0 +1,1017 @@
+EDC Pouch Full Manual
+
+Overview
+
+EDC Pouch is an everyday toolkit for Garmin Connect IQ watches. It is designed as a compact pouch of practical tools rather than a single-purpose app. It includes calendar tools, notes, tasks, countdowns, reader import, photo viewing, scientific references, a calculator, a unit converter, sensor demos, drawing, flash cards, a decision wheel, and a set of small games.
+
+The app supports Traditional Chinese and English. On first launch, if the watch language is Chinese, EDC Pouch defaults to Traditional Chinese and enables lunar calendar features. If the watch language is not Chinese, it defaults to English and disables lunar calendar features. Once you choose a language manually, your choice is stored and takes priority over automatic detection.
+
+The app is built for small watch memory. Many user lists load metadata first and load full bodies only when needed. Large text and image data are stored in chunks. Heavy tools try to release their working data when you leave them. Even with those protections, Connect IQ devices still have strict limits on memory, network response size, and storage record size, so very large text or image files may still fail.
+
+1. Home, Navigation, And Main Groups
+
+EDC Pouch has two home modes.
+
+Animated Home:
+The animated home uses a 3D carousel of icons. You can drag, tap, or use hardware keys to select items. The final icon can be used to exit the app. This home mode looks richer, but it uses more runtime memory because the 3D scene, icons, and animation state must stay alive.
+
+Normal Menu Home:
+The normal home shows a simple menu with four groups: Personal, Tools, Games, and System. This mode is more memory-friendly and is recommended when you plan to use memory-heavy tools such as Photo Album, Unit Converter, Calendar, or Maze3D for a long time.
+
+Main groups:
+
+Personal:
+Calendar, Notes, Countdown, Tasks, Decision Wheel, Flash Card, Drawing.
+
+Tools:
+Calculator, Unit Converter, Text Reader, Date Interval, Photo Album, Solar System, Periodic Table.
+
+Games:
+2048, Memory, Bubble Shooter, Down100, Gravity Surf, Basketball, Maze3D, Gomoku, Chess, Xiangqi.
+
+System:
+Home Menu Mode, Theme Color, Idle Clock, Vibration Toggle, Swipe Exit Toggle, Language, Calendar Lunar Toggle, Calendar Default Lunar Toggle, Screen Test, Input Event Test, Sensor Bars Test, All Sensors Test, AccelMag Ball Demo, Clear Storage, Memory Notice Toggle, About.
+
+Common controls:
+
+- Tap: select an item, confirm an action, open details, flip a card, shoot, or restart from a game-over box.
+- Swipe up/down: move through items, change a number, scroll, or adjust a value.
+- Swipe left/right: move between pages, change dates, or navigate, depending on the screen.
+- Hardware Select: confirms actions. In Text Reader it jumps to the next search result after a search has been set. In game-over boxes it restarts the game.
+- Back: returns to the previous screen. In zoomed board games, the first Back returns the board to full view, and the second Back exits.
+- Long press: used in selected tools. In Calculator, long-press Del to clear all.
+
+Idle Clock:
+
+Idle Clock is the global low-power overlay. After the configured idle time, the app can show a black screen with the current time. It is suppressed while the app is actively doing something the user expects to continue without touch input, such as photo decoding, GIF playback, Text Reader auto paging, Flash Card auto flip, Gravity Surf gameplay, and Maze3D auto exploration.
+
+2. Personal Features
+
+2.1 Calendar
+
+Calendar is one of the most complex parts of EDC Pouch. It includes a Gregorian month view, a lunar month view, a date picker, festivals, solar terms, and Day Info.
+
+Gregorian Month:
+The Gregorian month view shows the selected month, weekday headers, dates, today, and the selected date. If a date has a festival or a special label, the cell can show the label instead of simply showing the number. Today and the selected date use different visual treatments so that you can tell them apart.
+
+Lunar Month:
+The lunar month view shows lunar month names, lunar dates, lunar festivals, and solar terms. It also shows the lunar year label, such as Fire Horse Year. In Traditional Chinese, these labels use compact Chinese cultural terms. In English, the app uses short practical translations that fit the watch screen.
+
+Day Info:
+Day Info gives a compact daily summary. Depending on settings and available data, it can show:
+
+- Gregorian date.
+- Weekday.
+- Western zodiac sign.
+- Lunar year.
+- Lunar month and day.
+- Festival or solar term.
+- Heavenly Stem and Earthly Branch day.
+- Day officer.
+- Good activities.
+- Avoid activities.
+
+The Day Info layout is dynamic. It measures the safe circular area, estimates usable row width, fits related items on the same line when possible, wraps only when necessary, and shrinks text when content is long. Real devices and the simulator can render fonts differently, so the layout keeps safety margins to avoid clipping on the physical watch.
+
+Lunar Toggle:
+If Calendar Lunar Toggle is off, lunar month pages, lunar labels, and Chinese cultural details are hidden. The app also avoids starting lunar calculations. This saves memory and processing time. If lunar is on, the app may need to build lunar year data when you move to an uncached year.
+
+Date Picker:
+The date picker supports continuous dragging for numeric fields. When lunar display is enabled, it can show lunar context below the selected date. If lunar is disabled, it stays Gregorian-only.
+
+Recommended use:
+If you use the English interface and do not need lunar information, keep lunar calendar off. If you want Chinese festivals, solar terms, and traditional daily data, turn lunar calendar on.
+
+2.2 Notes
+
+Notes are for short text records. The list view loads only titles and metadata. The full note body is loaded only when you open the note for reading. This avoids loading all note bodies into memory just to display a list.
+
+Rules:
+
+- Titles are limited to 16 characters.
+- Note bodies are intended to be short.
+- Notes support append-style writing.
+- Opening a title enters the reading view.
+- Text display uses the shared TextView system.
+
+Why append instead of a full editor:
+Editing a long body on a watch is slow, and system text input has practical length limits. EDC Pouch keeps notes simple: create a short note, read it, and append more text when needed.
+
+2.3 Countdown
+
+Countdown tracks the distance between a stored date and today. It can be used for:
+
+- Days left before an event.
+- Days since an event.
+- Anniversaries.
+- Warranty dates.
+- Project milestones.
+- Birthdays or personal records.
+
+Countdown is different from Tasks. Countdown is about the date itself. Tasks are about things that must be completed.
+
+Glance:
+The glance view can show the nearest upcoming items and the nearest past items. It is designed to provide useful information quickly without opening the full app.
+
+2.4 Tasks
+
+Tasks are time-based items. Every task has a date and a time. This makes tasks distinct from Countdown and allows reminders to be scheduled more precisely.
+
+Task data:
+
+- Title.
+- Due date.
+- Due time.
+- Completion state.
+- Remaining time down to minutes.
+
+Reminders:
+Task reminders use the Connect IQ background and notification mechanisms. The app schedules the next reminder based on incomplete tasks. When a reminder is delivered, it can vibrate if the app vibration setting is enabled.
+
+Time zones:
+Task times are interpreted as local watch time. The app does not add special cross-time-zone logic. When traveling, the watch system time is the source of truth.
+
+2.5 Decision Wheel
+
+Decision Wheel lets you create custom wheels with custom choices. Preset wheels have been removed, so the tool stays flexible and user-defined.
+
+Uses:
+
+- Pick what to eat.
+- Choose a study topic.
+- Choose a task.
+- Randomize small decisions.
+- Make a party or game rule.
+
+Colors:
+When many choices are present, the wheel tries to keep similar hues from sitting next to each other. This makes the result segments easier to distinguish.
+
+2.6 Flash Cards
+
+Flash Cards can be used for vocabulary, formulas, concepts, questions, answers, or quick reminders.
+
+Supported behavior:
+
+- Multiple decks.
+- Single-sided cards.
+- Two-sided cards.
+- Random review.
+- Randomization by pair for two-sided cards.
+- Auto flip.
+- Theme colors.
+- Emoji-aware rendering.
+
+Input rule:
+Each comma-separated segment is limited to 32 characters. Longer segments are clipped. This keeps cards readable and avoids excessive memory use.
+
+Text fitting:
+Normal text uses scalable vector fonts and is fitted as large as possible. If content contains emoji, the app switches to a compatible system font path so that emoji can be shown.
+
+2.7 Drawing
+
+Drawing provides a quick sketch surface. It supports pen color, background color, eraser mode, and a toolbar. Pen and background colors use the shared app color choices. The eraser toolbar hides automatically after use so it does not cover the canvas.
+
+3. Tools
+
+3.1 Calculator
+
+The calculator supports both quick calculations and more advanced mathematical exploration.
+
+Supported areas include:
+
+- Basic arithmetic.
+- Decimals.
+- Parentheses.
+- Scientific functions.
+- Trigonometric functions.
+- Constants.
+- Variables.
+- Factorial.
+- Graphing.
+- 2D and 3D visualizations.
+
+Key behavior:
+
+- Tap Del to delete one character.
+- Long-press Del for AC.
+- Use ! for factorial.
+- The fact function name remains supported for factorial-style input.
+
+Graphing:
+The calculator can draw functions involving variables such as t, x, and y. Complex plots take longer. Avoid expressions that grow without bounds or create excessive numeric overflow.
+
+3.2 Unit Converter
+
+Unit Converter includes many categories:
+
+- Length.
+- Area.
+- Volume.
+- Mass.
+- Speed.
+- Temperature.
+- Pressure.
+- Energy.
+- Power.
+- Electrical units.
+- Mechanical units.
+- Sensor-related units.
+- Digital storage.
+- Daily-life units.
+
+Digital storage:
+Binary units are common in computing, so the digital storage category prioritizes common binary units.
+
+Memory design:
+Unit data is organized by category so that the app does not need to keep every conversion table in active memory at once. Leaving the tool should release the active category data as much as the platform allows.
+
+3.3 Text Reader
+
+Text Reader imports and displays text. It can import from a manual URL or from built-in demo URL entries.
+
+Import menu:
+
+- The first item is manual URL input.
+- Remaining items are resource-defined demo URLs.
+
+Features:
+
+- Page reading.
+- Font size selection.
+- Search.
+- Hardware Select jumps to the next search result.
+- Auto paging.
+- Emoji-aware display.
+- Chunked storage for large text.
+- Stream-like reading of stored chunks.
+
+Large text:
+Downloaded text is stored in smaller chunks. Reading and searching do not require building one giant string for the whole article. This reduces peak memory use and makes larger manuals more practical on a watch.
+
+Limits:
+The watch still has memory limits. Very large documents should be split into multiple files. Text Reader is suitable for manuals and articles, not huge books.
+
+3.4 Date Interval
+
+Date Interval calculates the difference between two dates. It can display lunar context when lunar calendar is enabled. If lunar calendar is disabled, the tool remains purely Gregorian and avoids lunar calculations.
+
+3.5 Photo Album
+
+Photo Album imports base64 image or GIF URLs. It uses the same URL menu style as Text Reader: manual URL first, demo URLs after that.
+
+Supported behavior:
+
+- Static image display.
+- GIF animation playback.
+- Chunked/streamed decoding.
+- Decode progress display.
+- Delete from detail page before waiting for decode.
+- Idle Clock suppression during decoding and playback.
+
+Why images are difficult:
+Connect IQ watches have limited memory. A base64 string, decoded bytes, GIF frame state, palette, and bitmap drawing buffer can all exist during decoding. EDC Pouch avoids keeping unnecessary caches, but large images can still fail.
+
+Image recommendations:
+
+- Resize before import.
+- Reduce colors before base64 export.
+- Keep GIF dimensions small.
+- Keep GIF frame count reasonable.
+- Use normal home mode if you plan to open many photos.
+
+3.6 Solar System
+
+Solar System shows an interactive visual model. It is meant for quick exploration and demonstration rather than precise astronomy simulation. On-screen hints are kept within safe display areas when possible.
+
+3.7 Periodic Table
+
+Periodic Table includes a main table and detail pages.
+
+Details can include:
+
+- Symbol.
+- Atomic number.
+- Name.
+- Category.
+- Atomic mass.
+- Melting point.
+- Boiling point.
+- Density.
+- Electron shell distribution.
+
+Text readability:
+Thin gray text can be hard to read on real watch screens, so detail pages use clearer theme-based colors and stronger text where possible.
+
+4. Games
+
+4.1 2048
+
+The classic sliding tile game. Swipe to move tiles. Equal tiles merge. When the game ends, tap the result box or press hardware Select to restart.
+
+4.2 Memory
+
+Flip cards to find matching pairs. Odd board sizes are supported by a lucky-card mechanism, so the difficulty steps between board sizes are smoother. Side labels fit within the crescent areas.
+
+4.3 Bubble Shooter
+
+Bubble Shooter uses a hex-style bubble layout. Tap where you want to shoot. Three or more connected bubbles of the same color disappear. The bubble field slowly moves downward. If it reaches the death line, the game ends and vibrates once. Upcoming bubble colors are shown near the bottom.
+
+4.4 Down100
+
+Move downward through platforms and hazards. The goal is to survive as long as possible while descending.
+
+4.5 Gravity Surf
+
+Gravity Surf is sensor-controlled. Tilt the watch to steer.
+
+Objects and effects:
+
+- Rocks stop the board, vibrate, and then let it accelerate again.
+- Spin objects rotate the board and send it in a random direction.
+- Speed items increase speed for a short time.
+- Slow items reduce speed for a short time.
+- Waves make the board fly. Repeated waves extend flight.
+- Stars grant invincibility. Repeated stars extend invincibility.
+- Near-miss rewards encourage risky play.
+- Combo behavior extends active states within limits.
+
+Idle Clock is disabled while the surfer is alive because the game can be played entirely with sensors and no button input.
+
+4.6 Basketball
+
+A compact shooting game. Control timing and direction to score.
+
+4.7 Maze3D
+
+Maze3D offers three complexity levels. Black areas are paths, gray areas are walls. The maze supports map drag, full-map viewing, and auto exploration. Auto exploration suppresses Idle Clock because the app is actively moving.
+
+4.8 Gomoku
+
+Gomoku supports board zoom, pan, and computer opponent play. If the game ends, you can still undo the last move unless you confirm the result box or press Select to restart.
+
+4.9 Chess
+
+Chess supports zoom and pan. The first Back press from a zoomed state returns to full board view. The next Back exits. Result boxes can be tapped or confirmed to restart.
+
+4.10 Xiangqi
+
+Xiangqi shares the board viewport behavior with the other board games. It supports zoom, pan, result confirmation, and restart.
+
+5. System Settings
+
+Home Menu Mode:
+Choose between Animated Home and Normal Menu Home.
+
+Theme Color:
+Choose the app-wide color theme. Non-image interface elements try to follow the theme.
+
+Idle Clock:
+Enable or disable the idle clock and choose the timeout. If disabled, it is disabled everywhere, including home and menus.
+
+Vibration Toggle:
+Global vibration setting. Important events can vibrate. Minor steps and routine taps avoid excessive vibration.
+
+Swipe Exit Toggle:
+Controls whether right swipe can exit from supported screens.
+
+Language:
+Switch between Traditional Chinese and English. The language menu labels each language in its own language. After switching, menus refresh.
+
+Calendar Lunar Toggle:
+Show or hide lunar calendar features.
+
+Calendar Default Lunar Toggle:
+Choose whether Calendar opens to lunar or Gregorian by default.
+
+Screen Test:
+Display test colors and screen patterns.
+
+Input Event Test:
+Shows hardware and touch events. This page may use smaller text than normal UI because it must display many events at once.
+
+Sensor Bars Test:
+Shows sensor values as bars.
+
+All Sensors Test:
+Shows multiple sensor readings and free memory for diagnostics.
+
+AccelMag Ball Demo:
+Tests accelerometer and magnetometer input. Useful for checking sensor readiness and calibration.
+
+Clear Storage:
+Erases user data. This cannot be undone.
+
+Memory Notice Toggle:
+When enabled, the app can show free memory from menu actions. When disabled, memory text is hidden from home and menus.
+
+About:
+Shows app information and version.
+
+6. Import URLs
+
+Text Reader and Photo Album share a common import URL menu.
+
+The menu contains:
+
+1. Manual URL input.
+2. Text or photo demo entries loaded from resources.
+
+The resource entries store short names and URL tails. The code adds the common GitHub raw prefix:
+
+https://raw.githubusercontent.com/lantydev/EDC_Pouch/refs/heads/main/
+
+This keeps resources shorter and makes demo URL maintenance easier.
+
+7. Storage And Memory Model
+
+EDC Pouch uses several storage patterns.
+
+Small settings:
+Language, theme, vibration, home mode, idle clock, and other settings are small and can be stored directly.
+
+List metadata:
+Notes, tasks, countdowns, flash cards, photos, and similar lists load metadata first. A list should not need to load every large body.
+
+Large bodies:
+Reader text and photo data are chunked. The app reads pieces as needed rather than keeping one huge body in memory.
+
+Temporary runtime data:
+Some tools create temporary data, such as photo decode buffers, calendar calculation data, unit conversion category arrays, or plot buffers. The app tries to release those references when leaving the tool.
+
+Why memory may not return exactly:
+Connect IQ may keep loaded modules and module-level symbols alive. If a global module has been loaded, its constants or arrays may remain in globals. This is not always a view leak. EDC Pouch avoids holding unnecessary references from views and delegates, but the platform may still keep loaded modules.
+
+8. Fonts And Emoji
+
+The app primarily uses vector fonts because they scale well across different watch resolutions. Garmin vector fonts may not show emoji. When user text contains emoji, the app uses a system-font path that can display emoji.
+
+This handling applies not only to lists, but also to user content such as notes, reader text, and flash cards. Mixed emoji and normal text may still look slightly different across devices, because system fonts come in fixed size steps.
+
+9. Low-Memory Tips
+
+Use Normal Menu Home when testing memory-heavy tools.
+Resize and reduce-color images before importing.
+Keep GIFs small.
+Split very long text into multiple reader entries.
+Disable lunar calendar if you do not need it.
+Avoid opening many heavy tools before opening Photo Album.
+If memory seems low after leaving a tool, return to home and wait briefly before opening another heavy tool.
+
+10. Release Test Checklist
+
+Language:
+Check first-launch language detection.
+Switch language and confirm root menus refresh.
+Open the language menu and confirm each language names itself.
+
+Calendar:
+Open Gregorian month view.
+Open lunar month view.
+Open Day Info in Chinese.
+Open Day Info in English.
+Toggle lunar calendar off and confirm lunar details disappear.
+Use the date picker with continuous dragging.
+
+Notes:
+Create a note.
+Append text.
+Open the reading view.
+Confirm title length behavior.
+Confirm emoji display.
+
+Countdown:
+Create future and past entries.
+Check glance preview.
+Delete entries.
+Confirm newest items appear first in lists.
+
+Tasks:
+Create a task with date and time.
+Check remaining time to minutes.
+Check reminder scheduling.
+Check notification vibration if vibration is enabled.
+Complete and delete tasks, then verify reminders update.
+
+Reader:
+Import from manual URL.
+Import from demo URL.
+Search text.
+Use hardware Select for next result.
+Test auto paging and Idle Clock behavior.
+Open a large text entry.
+
+Photo:
+Import static image.
+Import GIF.
+Open detail and delete before decoding.
+Start decode and press Back.
+Let decode finish.
+Play GIF.
+Confirm Idle Clock does not cover decoding or playback.
+
+Calculator:
+Basic arithmetic.
+Scientific functions.
+Factorial with !.
+fact compatibility.
+Graphing.
+Del and long-press AC.
+
+Unit Converter:
+Open each category.
+Check digital storage order.
+Enter and switch units.
+Leave and re-enter after other tools.
+
+Games:
+Start and finish 2048.
+Test Memory lucky card behavior.
+Play Bubble Shooter until game over and confirm vibration.
+Play Gravity Surf and check sensor state.
+Open Maze3D and auto exploration.
+Zoom and pan Gomoku, Chess, and Xiangqi.
+Undo after game end before confirming the result.
+
+System:
+Change home mode.
+Change theme.
+Enable and disable Idle Clock.
+Enable and disable vibration.
+Toggle memory notice.
+Use screen and input tests.
+Check About version.
+
+11. Troubleshooting
+
+Photo fails to open:
+The image may be too large, too many images may be stored, or available runtime memory may be too low. Try Normal Menu Home, delete unused photos, and use smaller images.
+
+GIF is slow:
+GIF decoding is expensive on a watch. Reduce frame count and dimensions.
+
+Text is too large:
+Split it into multiple entries. Even with chunked storage, rendering and searching still need memory.
+
+Lunar calendar feels slow:
+Lunar year calculation is expensive. Disable lunar features if you do not need them.
+
+Task reminder does not fire:
+Check notification permissions, background permissions, watch system settings, and whether the task is incomplete.
+
+Emoji appears as a question mark:
+If it is user-provided text, the app should use the emoji-capable path. Some Garmin devices may still not support every emoji glyph.
+
+Memory does not fully return after leaving a tool:
+The platform can keep modules loaded. This is not always a leak. If a heavy tool fails after long use, return to home or restart the app before using it again.
+
+12. Final Notes
+
+EDC Pouch tries to put many small tools into one watch app without pretending the watch is a phone. The best experience comes from using the right feature at the right scale: short notes instead of huge documents, optimized images instead of full-size pictures, normal home when memory matters, and lunar data only when you need it.
+
+The app is designed to be useful, compact, and playful. It can be a calendar, a reader, a small notebook, a quick calculator, a science reference, a decision tool, a flash-card deck, a drawing pad, a photo viewer, and a small game collection, all from the same watch.
+
+Appendix A: Detailed Feature Notes
+
+Calendar:
+Calendar is not only a date grid. It combines month navigation, day selection, Gregorian and lunar display, festivals, solar terms, and Day Info. The Gregorian month is the quickest view. The lunar month is heavier because it may need precomputed lunar-year data. Day Info is the most information-dense screen: it must fit date, weekday, zodiac sign, lunar year, lunar day, festival, day stem-branch, day officer, good activities, and avoid activities into a round display.
+
+The Day Info layout is intentionally compact. If a date has no avoid activities, the avoid section is omitted. If there is no festival or solar term, that row is not shown. If two fields fit on the same row, the layout tries to keep them together. If they do not fit, the app can shrink text or wrap. The purpose is to keep the most useful information visible without forcing the user to scroll.
+
+Lunar English:
+Some Chinese calendar concepts do not have a perfect everyday English equivalent. EDC Pouch uses short, practical translations. For example, a lunar year may be shown as Fire Horse Year. A stem-branch day may be shown as Ren-Shen Day. Day officers may be shown as Balance Day, Full Day, Hold Day, and so on. These translations are chosen to fit a watch screen and to stay readable.
+
+Date Picker:
+The date picker supports continuous drag changes. This is faster than changing one digit at a time. After you release, the picker recalculates the final value. If lunar display is on, the lower label shows lunar context. If lunar display is off, the picker stays simple and Gregorian.
+
+Notes:
+Notes are intentionally small. Their job is quick capture, not full document editing. A note list should not load every note body. It only needs titles and metadata. When you open a note, the body is loaded for reading. Append is supported because it is safer and simpler on a watch than full editing.
+
+Countdown:
+Countdown is for dates that matter by themselves. Examples include anniversaries, warranties, birthdays, deadlines without a detailed task, or days since an event. It can show both future and past items. The glance view picks nearby items because a glance should be a quick summary, not a full list.
+
+Tasks:
+Tasks are for actionable items. Every task has a date and a time. This allows remaining time to be shown down to minutes and allows reminder scheduling. A task without a time would be too similar to Countdown, so EDC Pouch keeps the two concepts separate.
+
+Task reminders:
+The app schedules reminders through Connect IQ background and notification APIs. When a notification callback runs, the app can vibrate if vibration is enabled. Background behavior depends on the watch and its permissions. If reminders do not appear, check system notification settings, background permission, and whether the task is still incomplete.
+
+Decision Wheel:
+The wheel is fully user-defined. Removing built-in presets reduces code and keeps the tool flexible. You can create any number of wheels and any number of options. Color assignment tries to avoid placing similar hues next to each other, which makes the wheel easier to read on a small display.
+
+Flash Cards:
+Flash Cards are best for short text. If a comma-separated part is too long, it is truncated. This is deliberate: very long cards are hard to read and waste memory. Two-sided cards are randomized by pair, so the front and back stay together. Auto flip is treated as active use, so Idle Clock is suppressed while it is running.
+
+Drawing:
+Drawing is designed for quick sketches. It is useful for symbols, arrows, small maps, and visual reminders. It is not meant to replace a full drawing app. The toolbar hides automatically so the canvas stays clear.
+
+Appendix B: Tool Details
+
+Calculator:
+The calculator tries to balance power and safety. Simple expressions should calculate immediately. Graphing and complex expressions may take longer, but the app avoids unnecessary work where possible. The Del key is optimized for common use: tap to delete one character, long-press to clear all. The ! key is the normal factorial operator. The fact name remains available for function-style input.
+
+Unit Converter:
+The converter contains many unit groups. Keeping every unit table active at all times would waste memory, so the data is organized by category. Digital storage puts common binary units first because they are more common for computing. The converter is useful for quick real-world conversions, but it is also a memory-heavy tool because of the number of units.
+
+Text Reader:
+Reader import downloads text, stores it in chunks, and displays it through the text view. Search can still work globally because the app scans through chunks. It does not need to build one giant string for the whole article. The page slider, font settings, search state, and auto paging are UI-level features on top of the chunked text data.
+
+Photo Album:
+Photo Album is the most memory-sensitive tool. Images often require several forms at different moments: base64 text, decoded bytes, GIF state, palette, and bitmap output. The app tries not to keep more than it needs. GIF animation uses one active frame rather than a large multi-frame cache. This reduces memory pressure, though it can make decoding and playback less aggressive.
+
+Photo detail:
+The detail page exists so that you can delete a photo without first waiting for a long decode. This is important when an image is too large or when many images are stored.
+
+Solar System:
+Solar System is a visual demo. It should be read as an interactive model, not as a high-precision astronomy engine.
+
+Periodic Table:
+The table provides quick access to element facts. Detail text uses clearer theme-based colors instead of thin gray text where possible. This matters on real watch screens, where thin strokes can disappear.
+
+Appendix C: Game Details
+
+2048:
+Use swipes to move tiles. When no move is possible, the result box appears. Tap the result box or press Select to restart.
+
+Memory:
+The memory game supports odd grid sizes by using a lucky-card rule. This avoids forcing every board size to have an even number of cards. Side counters are fitted to the crescent area.
+
+Bubble Shooter:
+Bubble Shooter uses a hex-grid layout. A new line should appear from the top of the play field, and existing bubbles should keep stable positions. Tap-to-shoot keeps the control simple. Three or more connected bubbles of the same color clear. When the bubble field reaches the death line, the game ends and vibrates once.
+
+Down100:
+Move down through the level and survive. The game is designed for quick play sessions.
+
+Gravity Surf:
+The surf game is sensor-based. A stationary watch may still report non-zero sensor values because real sensors drift and fluctuate. If the sensor system gets stuck at zero, restarting the watch may be required. While alive, the game suppresses Idle Clock because the player may be controlling the board only by tilt.
+
+Basketball:
+Basketball is a compact timing and aiming game. It should avoid excessive vibration for minor actions.
+
+Maze3D:
+Maze3D uses black as path and gray as wall. It supports auto exploration. During auto exploration, Idle Clock is suppressed because the app is actively progressing. Complexity levels are limited so that memory stays manageable.
+
+Board Games:
+Gomoku, Chess, and Xiangqi share a board viewport concept. Zoom can increase step by step. Pan works at every zoom level. Back returns to full board first, then exits. A game-over result does not immediately prevent undo; the player can undo until the result box is confirmed.
+
+Appendix D: Data And Memory Details
+
+Metadata-first loading:
+Lists should load only what they need: title, date, id, status, and small flags. They should not load large bodies. This applies to notes, tasks, countdown entries, reader entries, photo entries, flash-card decks, and similar user data.
+
+Chunked storage:
+Large text and image data are stored as chunks. A chunk is a smaller piece of a larger object. Chunking is needed because Connect IQ has storage-record limits and because a single huge string or byte array can cause memory spikes.
+
+Chunked reading:
+Chunked storage alone is not enough. A tool must also avoid immediately joining all chunks into one huge object. Text Reader and Photo Album are designed to read or decode in smaller pieces where possible.
+
+Module-level data:
+Monkey C modules can remain loaded once used. If a module contains large arrays as module-level constants, those arrays can remain visible in globals after leaving the feature. That is why large tables are better created on demand or split by category.
+
+Views and delegates:
+A screen may leave memory behind if a view, delegate, bitmap, runner, context object, or decoded frame remains referenced. EDC Pouch tries to clear these references in exit paths. If memory only rises the first time a module is used and then remains stable, it may be platform module retention rather than a leak.
+
+Runtime memory display:
+The app includes a memory notice option. It is meant for diagnostics. It should not run constantly or allocate heavily. It appears from menu actions when enabled.
+
+Appendix E: Font And Display Notes
+
+Vector fonts:
+Vector fonts scale well and keep proportions consistent across watch resolutions. They are good for dynamic UI.
+
+System fonts:
+System fonts are useful for emoji and for some built-in Garmin glyph support. They usually come in fixed size steps, so they do not fit every layout as smoothly as vector fonts.
+
+Emoji:
+User-provided text can contain emoji. The app detects this case and uses an emoji-capable font path for user content. Not every Garmin device supports every emoji, so unsupported emoji may still appear as missing glyphs.
+
+Theme colors:
+The app tries to apply theme colors to drawn UI, buttons, labels, and non-image art. Image content itself is not recolored. Some game art keeps its own colors for clarity.
+
+Round screens:
+Many Garmin watches have round screens. A square layout that looks fine in the center may still be clipped at corners. EDC Pouch uses safe widths and crescent areas to keep text visible.
+
+Appendix F: Practical Usage Patterns
+
+For daily use:
+Use Normal Menu Home, keep lunar calendar on only if you need it, use Notes for short entries, Tasks for actionable reminders, Countdown for dates, and Reader for long text.
+
+For study:
+Use Flash Cards for short memory items, Reader for longer reference text, Periodic Table for quick science lookup, and Calculator for formulas.
+
+For travel:
+Use Unit Converter, Calendar, Date Interval, Notes, and Photo Album. Keep imported images small.
+
+For testing:
+Use All Sensors Test for sensor state and memory, Input Event Test for key and touch behavior, Screen Test for display, and AccelMag Ball Demo for tilt input.
+
+For fun:
+Use Bubble Shooter, Gravity Surf, Memory, 2048, Down100, Basketball, and the board games.
+
+Appendix G: Troubleshooting Scenarios
+
+The app starts with less free memory than expected:
+Animated Home uses more memory than Normal Menu Home. Some modules may also stay loaded after first use. Switch to Normal Menu Home for memory-heavy testing.
+
+A photo opens after deleting other photos:
+The issue is likely total memory or storage pressure. Even if the target photo is unchanged, more stored data can increase metadata and chunk management overhead. Deleting unused photos can lower pressure.
+
+A GIF reaches the end of decoding and does not appear:
+This can happen if the final UI refresh is delayed. Dismissing a notification or causing a redraw may reveal the frame. The app should request a redraw after decode completes.
+
+Day Info keeps switching between loading and layout:
+This means layout or data readiness is being invalidated repeatedly. It should settle after data is ready. If it loops, check whether festival data, lunar data, or language text is triggering repeated layout resets.
+
+Unit Converter causes memory problems after other tools:
+Unit data is large. If it loads after other heavy modules, available memory may be too low. Normal Menu Home and category-level loading reduce the risk.
+
+Text with emoji looks different:
+Emoji requires system fonts, while normal text may use vector fonts. The app tries to match sizes, but exact matching is device-dependent.
+
+Appendix H: Suggested Release Verification
+
+Run this sequence on a real watch:
+
+1. Fresh launch with Chinese system language.
+2. Confirm Traditional Chinese UI and lunar enabled.
+3. Switch to English.
+4. Confirm root menu refreshes.
+5. Open Calendar, Day Info, and Date Picker.
+6. Disable lunar and confirm simplified display.
+7. Create a note and append text.
+8. Import a reader manual from demo URL.
+9. Search inside the reader.
+10. Import a small photo.
+11. Import a small GIF.
+12. Delete a photo from detail.
+13. Create a task due in two minutes.
+14. Wait for notification and vibration.
+15. Open Unit Converter and use digital storage.
+16. Open Periodic Table detail.
+17. Play Bubble Shooter until game over.
+18. Play Gravity Surf and confirm Idle Clock does not appear while alive.
+19. Open Maze3D and run auto exploration.
+20. Open Gomoku, zoom, pan, and undo after result.
+21. Return to home and check memory notice if enabled.
+
+Appendix I: Data Size Guidance
+
+Notes:
+Keep them short. They are for quick records.
+
+Reader:
+Use for manuals and articles. Split very long text into multiple entries.
+
+Photos:
+Small dimensions and low color counts are best. A visually simple image can still be expensive if encoded inefficiently.
+
+GIF:
+Short, small, low-color GIFs are best. Large frame counts or large dimensions can be slow.
+
+Flash Cards:
+Short cards work better than long paragraphs. If a card needs multiple lines of explanation, it may belong in Reader instead.
+
+Tasks:
+Use tasks for things you must do. Use Countdown for dates you only want to track.
+
+Appendix J: Closing
+
+EDC Pouch is built around a simple idea: the watch should have a small, useful, personal pouch of tools. Some features are practical, some are playful, and some are for testing the watch itself. The best version of the app is not the one that imitates a phone, but the one that respects the watch: small screens, quick interactions, limited memory, and always-available convenience.
+
+Appendix K: Screen-Level Reference
+
+Normal Home:
+Normal Home is only a category entry point. Its main value is stability and lower memory use. If you plan to test photos, GIFs, large text, Unit Converter, or Maze3D, Normal Home is the safer starting point. If Memory Notice is enabled, the title may include free memory. If Memory Notice is disabled, memory text should not be shown.
+
+Animated Home:
+Animated Home shows the rotating icon scene, time, and optional memory text. It is more visual, but it uses more runtime memory. If a large photo fails from Animated Home but opens from Normal Home, the cause is likely tight runtime memory rather than corrupted photo data.
+
+Submenus:
+All category submenus should use the current language. After changing language, the root menu and submenus should refresh. If a menu title includes memory text, it should reflect current free memory rather than a stale value.
+
+Calendar Month:
+The month grid must stay inside the round safe area. If a date has a festival or solar term, the cell can show the label. It should not try to show both a large date and a tiny label at the same time if that makes the text unreadable. Today and selected date should be visually distinct.
+
+Day Info:
+Day Info should prioritize complete information. It should not repeatedly switch between loading and layout after data is ready. Normal behavior is: show loading while data is missing, compute layout once, then display a stable page.
+
+Date Picker:
+The main date text should be large. The lunar support label should not be too small. If lunar is shown, the label should use theme colors and remain readable. Dragging a number should continuously change the value; final recalculation happens after release.
+
+Notes List:
+The list should display titles and necessary metadata only. It should not load every note body.
+
+Note Reading:
+Short text should still use the same top-based reading behavior as long text. It should not be forced into vertical center if that risks clipping. Emoji content should use an emoji-capable font path.
+
+Task List:
+Tasks should show title, remaining time, and position information. Glance text should fit the available area. Remaining time should be precise to minutes.
+
+Task Time Picker:
+The picker supports continuous drag and includes a Now shortcut. This avoids repeated swipes just to reach the current time.
+
+Text Reader:
+The text body is user content. Font size is user-controlled. The page slider should follow the actual component height, not assume full-screen height in small embedded areas. Auto paging should suppress Idle Clock.
+
+Photo List:
+List and detail screens should not decode the image. The detail page provides View and Delete. Delete should not require waiting for decode.
+
+Photo Viewer:
+Decode progress should update. After decoding finishes, the view should request a redraw so it does not stay on the progress page. GIF playback should suppress Idle Clock. Pixel-art-like images should not be distorted by unwanted filtering.
+
+Calculator:
+Button text must not overflow. Number keys and function keys should use consistent color logic. Del/AC should make tap and long-press behavior understandable.
+
+Unit Converter:
+The unit ratio area can show unit names. Long names should be clipped. If symbol and description are the same, showing it once is enough.
+
+Periodic Table:
+The main table should support tap and zoom. Detail pages should avoid thin gray text that disappears on a real watch. If the electron-shell diagram has no room for a hint line, the hint should be removed rather than clipped.
+
+Solar System:
+Bottom hints should remain inside the safe area. If a hint would fall outside the screen, it should move or shrink.
+
+Sensor Pages:
+Input Event Test may use smaller text because it displays many events, but it must remain readable. All Sensors Test can show free memory for diagnostics.
+
+Games:
+Games should vibrate only on important events, such as death, collision, or important success. Minor steps should not vibrate. Game-over boxes should support tap and hardware Select restart.
+
+Appendix L: Maintenance Reference
+
+For long-term use:
+
+1. Delete unused photos regularly.
+2. Split long documents into several reader entries.
+3. Keep flash-card text short.
+4. Clear completed tasks from time to time.
+5. Keep only meaningful countdown entries.
+6. Before release testing, use Clear Storage once and test from a clean state.
+
+Newest-first lists:
+User-created lists should generally show newest items first. This applies to notes, tasks, countdowns, photos, reader entries, flash cards, and wheels. On a watch, the newest item is often the one the user wants to open.
+
+Title length:
+User-editable titles are limited to 16 characters. This prevents list rows, detail pages, and glance previews from becoming unreadable.
+
+Body limits:
+Notes use smaller bodies. Reader entries can be larger and are chunked. Photos are chunked. Different data types have different limits because they have different memory costs.
+
+Appendix M: Development And Debugging Guidance
+
+Do not trust only the simulator:
+The simulator is useful for syntax and UI checks, but real watches reveal font clipping, memory pressure, sensor readiness, notification behavior, and GIF performance.
+
+Do not test only one feature:
+Some memory issues appear only after moving through several heavy features. A useful sequence is: Home, Calendar, Unit Converter, Photo Album, Reader, Maze3D, Periodic Table, Home, then Photo Album again.
+
+Watch first-use behavior:
+If memory drops after the first use of a feature and then stays stable, the platform may have loaded a module permanently. If memory drops more on every entry and exit, that looks more like a leak.
+
+Inspect globals carefully:
+If the memory tool shows globals/ChineseLunar, globals/UnitConverter, or globals/ElementData, this may mean the module was loaded. It is not automatically a view leak. Check whether a view, delegate, runner, bitmap, body string, or decoded frame still holds a reference.
+
+Debugging order:
+First check whether the view exits. Then check delegates. Then check runners. Then check bitmaps and decoded frames. Then check body strings and loaded arrays. Only after that should you assume platform module retention.
+
+Appendix N: Conservative User Profiles
+
+Stable profile:
+Normal Menu Home, lunar off if not needed, small photos only, short GIFs, split long text, one heavy tool at a time.
+
+Visual profile:
+Animated Home, theme colors, Photo Album, Solar System, Periodic Table, Bubble Shooter, and Gravity Surf.
+
+Battery profile:
+Idle Clock enabled, auto modes off when not needed, leave games when not playing.
+
+Testing profile:
+Memory Notice enabled, Normal Menu Home, repeated entry/exit of heavy features, real-watch testing after simulator testing.
+
+Appendix O: Feature Positioning Table
+
+Calendar:
+Date, festivals, lunar calendar, solar terms, and daily cultural information.
+
+Date Interval:
+Difference between two dates.
+
+Countdown:
+Tracking dates relative to today.
+
+Tasks:
+Timed actionable items with reminders.
+
+Notes:
+Short text records.
+
+Text Reader:
+Long text and manuals.
+
+Photo Album:
+Small images and GIFs.
+
+Flash Cards:
+Short review items.
+
+Decision Wheel:
+Random choice.
+
+Drawing:
+Quick sketching.
+
+Calculator:
+Expressions and graphs.
+
+Unit Converter:
+Unit and value conversion.
+
+Periodic Table:
+Element reference.
+
+Solar System:
+Visual model.
+
+Games:
+Short play and interaction testing.
+
+System Tests:
+Screen, input, sensors, memory, and storage diagnostics.
+
+Appendix P: Release Acceptance Checklist
+
+This section is a final checklist for release testing.
+
+Home:
+Normal Home must show Personal, Tools, Games, and System. Animated Home must rotate, tap, drag, and exit through the exit icon. Changing Home Menu Mode should take effect when returning to home; it should not require a full app restart. If Memory Notice is disabled, memory text should not appear on home or menus.
+
+Language:
+On a clean install, Chinese watch languages should default to Traditional Chinese and lunar enabled. Non-Chinese languages should default to English and lunar disabled. After manually changing language, root menus, submenus, titles, buttons, and prompts should use the new language. In the Language menu, each language should describe itself in its own language.
+
+Theme:
+Theme colors should apply to drawn menus, buttons, calendar screens, detail pages, drawing, flash cards, decision wheel, unit converter, and element pages. Images and gameplay colors with functional meaning may keep their own colors.
+
+Idle Clock:
+Idle Clock should appear when the user is inactive. It should not appear during Text Reader auto paging, Flash Card auto flip, Photo decoding, Photo playback, Gravity Surf while alive, or Maze3D auto exploration. Calculator should allow Idle Clock because it does not need continuous animation.
+
+Lunar:
+When lunar is disabled, lunar month pages, Day Info lunar sections, and date picker lunar labels should disappear. When enabled, Gregorian and lunar views should both work. In English, lunar translations should be short and readable, not mixed Chinese-English fragments.
+
+Day Info:
+Test days with festivals, without festivals, with good/avoid activities, with only good activities, with only avoid activities, long text, short text, Chinese, and English. The screen should not flicker forever or loop between loading and layout. Real-watch top and bottom edges must not clip important text.
+
+Month Views:
+Weekday headers should be coordinated in size. If a cell shows a festival label, it should not also show a tiny unreadable date. Lunar month cells should use consistent sizing across the grid.
+
+Date And Time Pickers:
+The date picker and task time picker should support continuous drag changes. The task time picker should include Now. If lunar is shown, the bottom lunar-year label must be readable and theme-colored.
+
+Notes:
+Newest items first. Lists load titles only. Body loads only when opened. Append should work. Short note text should use the same reading behavior as long text and should not be vertically centered into clipping.
+
+Reader:
+URL import menu shows manual input first and demo URLs after it. Search should find results. Hardware Select should jump to the next result. Auto paging should suppress Idle Clock. Large text should read in chunks instead of immediately running out of memory.
+
+Photo:
+URL import menu shows manual input first and demo URLs after it. List does not decode. Detail does not decode. View starts decoding. Delete works from detail. After decode completes, the image should appear without needing a notification or manual redraw. GIF should not hold a large frame cache. Pixel-art-like images should not be blurred or gridded by the wrong scaling path.
+
+Tasks:
+Every task must have time. Remaining time should show minutes. Reminders should schedule. Notifications should vibrate if vibration is enabled. Completing or deleting a task should update the next reminder. Glance text must fit.
+
+Countdown:
+Future and past entries both display. Past entries use ago-style wording. Newest list items appear first.
+
+Decision Wheel:
+No built-in presets. Users create their own wheels. Similar colors should not cluster together when there are many choices.
+
+Flash Cards:
+Two-sided random review works by pair. Auto flip suppresses Idle Clock. Emoji displays. Long comma-separated segments are clipped safely.
+
+Drawing:
+Pen, background, and eraser work. The toolbar hides after eraser changes. Shared colors and theme colors remain consistent.
+
+Calculator:
+Tap Del deletes one character. Long-press Del clears all. ! works for factorial. fact remains accepted. Button text does not overflow. The page slider in compact areas uses the actual component height.
+
+Unit Converter:
+Specific category data is built only when entering that category and released when leaving. Digital storage prioritizes binary units. Unit names, symbols, and ratio labels stay inside the screen.
+
+Elements:
+Main table and detail pages are readable. Thin gray text should not disappear. Detail description text is large enough. Extra hint text below the electron diagram should be removed if there is no room.
+
+Solar System:
+Bottom hints stay inside the safe area.
+
+Bubble Shooter:
+Hex layout, top-aligned play field, tap-to-shoot, no highlight dot, stable existing bubble positions when a new line appears, one vibration on death, and localized name.
+
+Other Games:
+Test 2048, Memory, Down100, Gravity Surf, Basketball, Maze3D, Gomoku, Chess, and Xiangqi for start, play, game over, restart, and back behavior. Vibration should not be too frequent.
+
+System Tests:
+Input Event Test text must be readable. All Sensors Test should show reasonable values. If Garmin sensor APIs get stuck, restarting the watch may be required before retesting.
+
+Clear Storage:
+After clearing storage, lists should show empty states and should not crash with out-of-bounds errors.
+
+Final Stress Test:
+Open Photo Album from Animated Home, then from Normal Home, and compare available memory. Repeatedly enter and leave Calendar, Unit Converter, Photo Album, Reader, Maze3D, and Periodic Table. If memory drops only after first use and then stabilizes, it may be module loading. If it drops after every cycle, inspect references.

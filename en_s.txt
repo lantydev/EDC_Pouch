@@ -1,0 +1,159 @@
+EDC Pouch Quick Manual
+
+EDC Pouch is a compact everyday toolkit for Garmin watches. It combines calendar tools, notes, tasks, reader, photo album, calculator, unit converter, flash cards, decision wheel, drawing, science references, sensor tests, and small games in one app. The interface supports Traditional Chinese and English. On first launch, Chinese system languages default to Chinese with lunar calendar enabled; non-Chinese languages default to English with lunar calendar disabled. You can change both settings later.
+
+1. Home And Controls
+
+The home screen can be either the animated 3D carousel or a normal menu. The normal home menu opens four groups: Personal, Tools, Games, and System. The animated home rotates feature icons and can also show an exit icon. If Idle Clock is enabled, the screen turns black and shows the time after a period without input. Idle Clock is suppressed during active modes such as photo decoding, GIF playback, text auto paging, flash card auto flip, gravity surf gameplay, and maze auto exploration.
+
+Common controls:
+- Swipe or hardware keys: move, page, or adjust values.
+- Tap: select, confirm, flip, shoot, or open details.
+- Back: return to the previous screen. On zoomed board games, the first Back returns to full view.
+- Long press: used by selected tools, such as Del/AC in the calculator.
+
+2. Personal
+
+Calendar:
+Shows Gregorian calendar, lunar calendar, festivals, solar terms, and day details. Day Info can display date, weekday, zodiac sign, lunar date, Heavenly Stem/Earthly Branch, day officer, good/avoid activities, and festivals. If lunar calendar is disabled, lunar pages and Chinese cultural details are hidden and lunar calculations are not started.
+
+Notes:
+For short notes. Lists load only titles; note body is loaded only when opened for reading. Titles are limited to 16 characters. Notes support append-style writing.
+
+Countdown:
+Tracks days from or until a date. The glance view shows the nearest upcoming and past entries.
+
+Tasks:
+Every task has a date and time. Remaining time can be shown down to minutes. Task reminders use the watch background/notification system and can vibrate when vibration is enabled.
+
+Decision Wheel:
+Create custom wheels and custom options. When many options exist, colors are arranged to reduce adjacent similar hues.
+
+Flash Cards:
+Supports decks, two-sided cards, random review, and auto flip. Text is fitted as large as possible. Emoji content uses a compatible font path.
+
+Drawing:
+Quick drawing with pen, background color, and eraser. Colors follow the app theme.
+
+3. Tools
+
+Calculator:
+Supports basic math, scientific functions, factorial, and graphing. Tap Del to delete one character; long-press it for AC. Factorial can be entered with !, and fact remains supported.
+
+Unit Converter:
+Includes length, area, mass, speed, temperature, pressure, energy, power, electrical units, digital storage, and more. Digital storage prioritizes common binary units.
+
+Text Reader:
+Import text from URL or built-in demo URLs. Search is supported, and the hardware Select key jumps to the next result after a search is created. Large text is stored and read in chunks.
+
+Date Interval:
+Calculates the interval between two dates. With lunar enabled, the date picker can show lunar labels. With lunar disabled, it stays Gregorian-only.
+
+Photo Album:
+Imports base64 image or GIF URLs, including demo URLs. Photos are decoded with chunked/streamed logic to reduce memory pressure. A detail page lets you delete an item before waiting for decoding.
+
+Solar System:
+Interactive solar-system view.
+
+Periodic Table:
+Element table and element detail pages, including symbol, name, atomic number, category, atomic mass, and electron shells.
+
+4. Games
+
+Games include 2048, Memory, Bubble Shooter, Down100, Gravity Surf, Basketball, Maze3D, Gomoku, Chess, and Xiangqi. Most game-over boxes can be tapped or confirmed with the hardware Select key to restart. Board games support zoom, pan, and undo. Gravity Surf uses sensors and is not interrupted by Idle Clock while alive.
+
+5. System Settings
+
+Home Menu Mode: animated home or normal menu.
+Theme Color: app-wide color palette.
+Idle Clock: enable/disable and timeout.
+Vibration Toggle: global vibration switch.
+Swipe Exit Toggle: allow or block swipe-to-exit.
+Language: Chinese or English.
+Calendar Lunar Toggle: show/hide lunar calendar.
+Calendar Default Lunar Toggle: default calendar page.
+Memory Notice Toggle: show free memory from menu actions.
+Clear Storage: erase user data.
+About: app information and version.
+
+6. Import And Storage
+
+Reader and Photo import screens first show a URL menu. The first item is manual URL input; the rest are demo URLs from resources. User lists load metadata first and load bodies only on demand. Large text and image data are stored in chunks to reduce memory spikes.
+
+7. Recommended Tests
+
+Before release, test language switching, lunar on/off behavior, text import/search, photo import/GIF playback/delete, task reminders, all games, and repeated entry/exit of memory-heavy tools such as Photo Album, Unit Converter, Calendar, and Maze3D.
+
+8. Notes
+
+Connect IQ devices have limited memory. Large images, long texts, and many stored items can still hit device limits. For best results, resize and reduce-color images before base64 export. Task notifications depend on watch background and notification permissions.
+
+9. Quick Operation Table
+
+Calendar:
+Tap a date to open Day Info. Move between days with swipes or hardware navigation. If lunar calculation feels slow and you do not need lunar data, disable Calendar Lunar Toggle.
+
+Date Picker:
+Drag up or down to change numbers continuously, then release and confirm. The Today button jumps back to today. If lunar display is enabled, the bottom label shows lunar year and date.
+
+Notes:
+Tap a title to read. Titles are limited to 16 characters. Use Notes for short records. Use Text Reader for long documents.
+
+Tasks:
+Every task has a date and time. The time picker includes a Now shortcut. Remaining time can show days, hours, and minutes.
+
+Text Reader:
+Choose URL import. The first item is manual input; the rest are demo URLs. Reader supports font size, search, paging, and auto paging. Hardware Select jumps to the next search result.
+
+Photo Album:
+Tap a photo item to open its detail page. You can delete from there before decoding. Viewing starts decoding. GIF playback follows frame timing, but large GIF files may be slow.
+
+Calculator:
+Tap Del to delete one character. Long-press Del for AC. Use ! for factorial. Graphing is useful, but extreme expressions can overflow.
+
+Unit Converter:
+Choose a category, then a unit. The center of the screen shows the converted result. If memory becomes low after long use, returning to the home screen before entering another heavy tool may help.
+
+Flash Cards:
+Review in order or randomly. Two-sided cards are randomized by pair. Auto flip suppresses Idle Clock while active.
+
+Bubble Shooter:
+Tap where you want to shoot. Three or more connected bubbles of the same color clear. If the bubble field reaches the death line, the game ends.
+
+Board Games:
+Zoom and pan the board. After the result appears, tapping the result box or pressing Select restarts. Before confirming the result, undo can still be used.
+
+10. Troubleshooting
+
+Photo does not open:
+Delete unused photos, switch to Normal Menu Home, and use smaller images.
+
+Text does not open:
+The document may be too large. Split it into smaller entries.
+
+Calendar is slow:
+Lunar year data may be building. Once built, the same year is faster.
+
+Task notification does not appear:
+Check that the task is incomplete, notification permission is enabled, background permission is available, and the watch is not blocking app notifications.
+
+Emoji is shown as a question mark:
+User text uses an emoji-compatible path, but Garmin devices do not support every emoji glyph.
+
+11. Minimal Maintenance Tips
+
+For everyday use:
+- Use Normal Menu Home if you want more free memory.
+- Enable lunar calendar only if you need it.
+- Resize photos before importing.
+- Keep GIF files small.
+- Use Text Reader for long text and Notes for short records.
+- Use Tasks for timed actions and Countdown for date tracking.
+- Keep Memory Notice off unless you are testing.
+
+For stability testing:
+Open and leave heavy tools such as Photo Album, Unit Converter, Calendar, and Maze3D. Then return to home and check available memory. Test a large reader entry, a GIF, a task reminder, and language switching. If a photo opens in Normal Menu Home but fails in Animated Home, the issue is usually tight runtime memory rather than corrupted data.
+
+12. Data Safety
+
+Clear Storage removes user data, including notes, tasks, countdowns, flash cards, wheels, imported photos, and reader entries. EDC Pouch does not provide cloud sync. Data lives on the watch within Connect IQ storage limits.
